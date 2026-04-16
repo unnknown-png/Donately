@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Donately", "Donately\Donately.csproj", "{A5E6B262-4857-4F1A-89DB-752353829742}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "src", "src\src.csproj", "{A5E6B262-4857-4F1A-89DB-752353829742}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
