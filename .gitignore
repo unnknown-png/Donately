@@ -1,0 +1,142 @@
+# ========================
+# .NET / ASP.NET Core
+# ========================
+bin/
+obj/
+artifacts/
+.vs/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/                  # для старих packages.config
+*.nupkg
+*.snupkg
+
+# lock files (старі/рідкісні, але не завадять)
+project.lock.json
+project.fragment.lock.json
+
+# ========================
+# Visual Studio (additional)
+# ========================
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+*.vsidx
+*.ipch
+
+# ========================
+# JetBrains Rider / IntelliJ / ReSharper
+# ========================
+.idea/
+*.sln.iml
+*.iws
+*.iml
+riderModule.iml
+
+_ReSharper.Caches/
+**/_ReSharper.Caches/
+
+*.DotSettings.user
+*.resharper
+*.resharper.user
+
+# Rider / JetBrains local state
+**/.idea/**
+
+# ========================
+# Visual Studio Code
+# ========================
+.vscode/
+*.code-workspace
+.history/
+*.log
+
+# Optional: local debug/launch tasks (зазвичай тримають локально)
+.vscode/launch.json
+.vscode/tasks.json
+
+# ========================
+# OS / system files (Windows)
+# ========================
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ========================
+# OS / system files (macOS)
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# ========================
+# OS / system files (Linux)
+# ========================
+*~
+
+# ========================
+# Frontend / static libs
+# ========================
+**/wwwroot/lib/
+
+# ========================
+# Logs / temp
+# ========================
+Logs/
+**/Logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+сд
+# ========================
+# Secrets / Configuration
+# ========================
+.env
+.env.local
+.env.*.local
+appsettings.*.json
+!appsettings.Development.json
+!appsettings.Staging.json
+!appsettings.Production.json
+!src/appsettings.Development.json
+!src/appsettings.Staging.json
+!src/appsettings.Production.json
+secrets.json
+*.pfx
+*.p12
+user-secrets-id
+
+# .NET User Secrets
+**/Properties/launchSettings.json
+src/Properties/launchSettings.json
+# User uploads (avatars, files, etc.)
+src/Presentation/wwwroot/uploads/
+uploads/
