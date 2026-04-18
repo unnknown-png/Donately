@@ -18,6 +18,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
     public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
 
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+
+    public DbSet<VerificationRequest> VerificationRequests => Set<VerificationRequest>();
+
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    public DbSet<WebhookEvent> WebhookEvents => Set<WebhookEvent>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -27,6 +35,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.ToTable("Users");
+
+            entity.Property(x => x.Id)
+                .HasDefaultValueSql("gen_random_uuid()");
 
             entity.Property(x => x.FullName)
                 .HasMaxLength(200);
@@ -49,7 +60,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.Property(x => x.RowVersion)
-                .IsConcurrencyToken();
+                .IsRowVersion();
+
+            entity.HasIndex(x => x.IsVerified);
+
+            entity.HasIndex(x => x.NormalizedEmail)
+                .HasDatabaseName("EmailIndex")
+                .IsUnique()
+                .HasFilter("\"NormalizedEmail\" IS NOT NULL");
         });
 
         builder.Entity<IdentityRole<Guid>>().ToTable("Roles");
