@@ -1,6 +1,6 @@
 using System.Diagnostics;
+using Donately.Application.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Donately.Models;
 
 namespace Donately.Controllers;
 
