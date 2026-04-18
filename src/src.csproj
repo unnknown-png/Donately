@@ -4,10 +4,13 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <AssemblyName>Donately</AssemblyName>
+        <RootNamespace>Donately</RootNamespace>
         <UserSecretsId>Donately-6d5e2f1a-4c3a-4e3a-9f7b-4d7f6c7c1a11</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
             <PrivateAssets>all</PrivateAssets>
@@ -21,4 +24,3 @@
 
 
 </Project>
-

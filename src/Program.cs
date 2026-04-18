@@ -1,4 +1,8 @@
+using Donately.Application.Interfaces;
+using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
+using Donately.Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -25,6 +29,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.")));
 
+builder.Services
+    .AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -38,7 +52,7 @@ if (!app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging(options =>
 {
     options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-    options.GetLevel = (httpContext, elapsed, exception) =>
+    options.GetLevel = (httpContext, _, _) =>
     {
         var path = httpContext.Request.Path.Value ?? string.Empty;
 
@@ -56,6 +70,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
