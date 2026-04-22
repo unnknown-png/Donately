@@ -55,12 +55,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
             entity.Property(x => x.Bio)
                 .HasMaxLength(1000);
 
+            entity.Property(x => x.Location)
+                .HasMaxLength(200);
+
+            entity.Property(x => x.DateOfBirth)
+                .HasColumnType("date");
+
             entity.Property(x => x.CreatedAt)
                 .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.Property(x => x.RowVersion)
-                .IsRowVersion();
+                .HasColumnType("bytea")
+                .IsConcurrencyToken();
 
             entity.HasIndex(x => x.IsVerified);
 

@@ -9,6 +9,11 @@ public readonly record struct Error(string Code, string Message)
     public override string ToString() => IsNone ? string.Empty : $"{Code}: {Message}";
 }
 
+public readonly record struct Success
+{
+    public static readonly Success Value = new();
+}
+
 public readonly record struct Result
 {
     public bool IsSuccess { get; }
@@ -38,6 +43,8 @@ public readonly record struct Result
     public static Result Failure(Error error) => new(false, error);
 
     public static implicit operator Result(Error error) => Failure(error);
+
+    public static implicit operator Result(Success _) => Success();
 
     public override string ToString() => IsSuccess ? "Success" : $"Failure: {Error}";
 }

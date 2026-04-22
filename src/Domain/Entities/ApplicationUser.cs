@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace Donately.Domain.Entities;
 
@@ -13,6 +14,11 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? ProfileImagePath { get; set; }
 
     public string? Bio { get; set; }
+
+    [MaxLength(200)]
+    public string? Location { get; set; }
+
+    public DateTime? DateOfBirth { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

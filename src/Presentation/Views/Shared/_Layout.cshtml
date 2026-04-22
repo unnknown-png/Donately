@@ -24,9 +24,19 @@
                     <a class="nav-link text-dark app-header__link" asp-area="" asp-controller="Statistics" asp-action="Index">Статистика</a>
                 </div>
 
-                <a class="app-header__avatar" asp-area="" asp-controller="Profile" asp-action="Index" aria-label="Профіль користувача">
-                    <span class="app-header__avatar-icon" aria-hidden="true">👤</span>
-                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="app-header__avatar" asp-area="" asp-controller="Profile" asp-action="Index" aria-label="Профіль користувача">
+                        <span class="app-header__avatar-icon" aria-hidden="true">👤</span>
+                    </a>
+                }
+                else
+                {
+                    <div class="app-header__auth-actions">
+                        <a class="app-header__auth-btn app-header__auth-btn--outline" asp-area="" asp-controller="Auth" asp-action="Register">Зареєструватись</a>
+                        <a class="app-header__auth-btn app-header__auth-btn--solid" asp-area="" asp-controller="Auth" asp-action="Login">Увійти</a>
+                    </div>
+                }
             </div>
         </nav>
     </header>
