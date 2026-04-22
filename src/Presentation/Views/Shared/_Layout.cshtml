@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,38 +10,64 @@
     <link rel="stylesheet" href="~/Donately.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Donately</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <header class="app-header border-bottom box-shadow">
+        <nav class="navbar navbar-light bg-white">
+            <div class="container-fluid app-header__container">
+                <a class="navbar-brand app-header__brand" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Donately на головну сторінку">
+                    <span class="app-header__logo" aria-hidden="true">🤝</span>
+                    <span class="app-header__title">Donately</span>
+                </a>
+
+                <div class="app-header__actions">
+                    <a class="nav-link text-dark app-header__link" asp-area="" asp-controller="Home" asp-action="Index">Головна</a>
+                    <a class="nav-link text-dark app-header__link app-header__link--featured" asp-area="" asp-controller="Fundraisers" asp-action="Index">Актуальні збори</a>
+                    <a class="nav-link text-dark app-header__link" asp-area="" asp-controller="Statistics" asp-action="Index">Статистика</a>
                 </div>
+
+                <a class="app-header__avatar" asp-area="" asp-controller="Profile" asp-action="Index" aria-label="Профіль користувача">
+                    <span class="app-header__avatar-icon" aria-hidden="true">👤</span>
+                </a>
             </div>
         </nav>
     </header>
+    
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Donately - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer footer--enhanced">
+        <div class="container footer__container">
+            <div class="footer__brand-block">
+                <div class="footer__brand" aria-label="Donately">
+                    <span class="footer__logo" aria-hidden="true">🤝</span>
+                    <span class="footer__title">Donately</span>
+                </div>
+                <p class="footer__copy">@DateTime.Now.Year - Donately</p>
+                <p class="footer__author">Андрій Кахновець</p>
+            </div>
+
+            <div class="footer__links-block">
+                <h2 class="footer__heading">Контакти</h2>
+                <div class="footer__contacts-grid">
+                    <div class="footer__contacts-column">
+                        <ul class="footer__links-list">
+                            <li><a class="footer__link" href="https://github.com/unnknown-png" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                            <li><a class="footer__link" href="https://t.me/unnknown_png" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer__contacts-column footer__contacts-column--accent">
+                        <ul class="footer__links-list">
+                            <li><a class="footer__link" href="mailto:kahnovets.ap@gmail.com">Email підтримки</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
