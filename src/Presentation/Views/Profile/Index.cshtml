@@ -1,18 +1,117 @@
 @{
-    ViewData["Title"] = "Профіль";
+    ViewData["Title"] = "Твій профіль";
+
+    var profileName = "Андрій Кахновець";
+    var profileRole = "Адміністратор";
+    var profileBio = "Студент Львівського національного університету імені Івана Франка";
+    var profileSince = "Разом з Donately від 21.04.2026";
+    var profileLocation = "Львів, Україна";
 }
 
 <section class="app-section">
     <div class="section-header">
         <h1 class="section-title">@ViewData["Title"]</h1>
-        <p class="section-subtitle">Тут згодом буде сторінка профілю користувача.</p>
+        <p class="section-subtitle">Візуальний макет профілю з трьома горизонтальними блоками в нашому стилі.</p>
     </div>
 
-    <div class="placeholder-card donation-placeholder-card">
-        <div class="placeholder-card__avatar"></div>
-        <div class="placeholder-card__line placeholder-card__line--wide"></div>
-        <div class="placeholder-card__line"></div>
-        <div class="placeholder-card__line placeholder-card__line--short"></div>
+    <div class="profile-stack">
+        <article class="placeholder-card profile-card profile-card--summary">
+            <div class="profile-card__avatar-wrap" aria-hidden="true">
+                <div class="profile-card__avatar">АК</div>
+                <span class="profile-card__avatar-badge">✓</span>
+            </div>
+
+            <div class="profile-card__content">
+                <div class="profile-card__identity">
+                    <div>
+                        <p class="profile-card__name">@profileName</p>
+                        <p class="profile-card__role">@profileRole</p>
+                    </div>
+
+                    <span class="profile-card__status">Верифікований</span>
+                </div>
+
+                <p class="profile-card__bio">@profileBio</p>
+
+                <div class="profile-card__meta">
+                    <span class="profile-card__meta-item">@profileLocation</span>
+                    <span class="profile-card__meta-item">@profileSince</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="placeholder-card profile-card profile-card--details">
+            <div class="profile-card__header">
+                <div>
+                    <h2 class="profile-card__title">Personal Information</h2>
+                    <p class="profile-card__subtitle">Основні дані профілю, які користувач зможе змінити через редагування.</p>
+                </div>
+
+                <button type="button" class="profile-edit-button">
+                    <span>Редагувати</span>
+                    <span aria-hidden="true">✎</span>
+                </button>
+            </div>
+
+            <div class="profile-info-grid">
+                <div class="profile-info-item">
+                    <span class="profile-info-item__label">Full Name</span>
+                    <strong class="profile-info-item__value">@profileName</strong>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-item__label">Email Address</span>
+                    <strong class="profile-info-item__value">kahnovets.ap@gmail.com</strong>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-item__label">Phone Number</span>
+                    <strong class="profile-info-item__value">+(380) 96 916 3732</strong>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-item__label">Date of Birth</span>
+                    <strong class="profile-info-item__value">13-12-2005</strong>
+                </div>
+            </div>
+        </article>
+
+        <article class="placeholder-card profile-card profile-card--verification">
+            <div class="profile-card__header">
+                <div>
+                    <h2 class="profile-card__title">Верифікація</h2>
+                    <p class="profile-card__subtitle">Після виконання кроків користувач зможе донатити на збори.</p>
+                </div>
+
+                <span class="profile-verification__pill">В процесі</span>
+            </div>
+
+            <div class="profile-verification__steps">
+                <div class="profile-verification__step profile-verification__step--done">
+                    <span class="profile-verification__step-index">1</span>
+                    <div>
+                        <p class="profile-verification__step-title">Підтвердити email</p>
+                        <p class="profile-verification__step-text">Базовий крок для активації профілю.</p>
+                    </div>
+                </div>
+
+                <div class="profile-verification__step profile-verification__step--active">
+                    <span class="profile-verification__step-index">2</span>
+                    <div>
+                        <p class="profile-verification__step-title">Додати документ</p>
+                        <p class="profile-verification__step-text">Тут буде крок для верифікації користувача в майбутньому.</p>
+                    </div>
+                </div>
+
+                <div class="profile-verification__step">
+                    <span class="profile-verification__step-index">3</span>
+                    <div>
+                        <p class="profile-verification__step-title">Отримати статус</p>
+                        <p class="profile-verification__step-text">Після перевірки відкривається можливість донатити на збори.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
     </div>
 </section>
 
