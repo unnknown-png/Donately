@@ -1,4 +1,5 @@
 using Donately.Application.Interfaces;
+using Donately.Application.Common.Results;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,23 +15,27 @@ public class PaymentWebhookService : IPaymentWebhookService
         _dbContext = dbContext;
     }
 
-    public async Task ConfirmDonationPaymentAsync(PaymentWebhookConfirmationRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> ConfirmDonationPaymentAsync(PaymentWebhookConfirmationRequest request, CancellationToken cancellationToken = default)
     {
         var executionStrategy = _dbContext.Database.CreateExecutionStrategy();
 
-        await executionStrategy.ExecuteAsync(async () =>
+        return await executionStrategy.ExecuteAsync(async () =>
         {
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             // Lock donation row to avoid concurrent double-credit on repeated webhook calls.
             var donation = await _dbContext.Donations
                 .FromSqlInterpolated($"SELECT * FROM \"Donations\" WHERE \"Id\" = {request.DonationId} FOR UPDATE")
-                .SingleOrDefaultAsync(cancellationToken)
-                ?? throw new InvalidOperationException($"Donation '{request.DonationId}' not found.");
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (donation is null)
+            {
+                return new Error("Donation.NotFound", $"Donation '{request.DonationId}' was not found.");
+            }
 
             if (request.Amount != donation.Amount || !string.Equals(request.Currency, donation.Currency, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Webhook amount/currency does not match donation data.");
+                return new Error("Donation.AmountOrCurrencyMismatch", "Webhook amount/currency does not match donation data.");
             }
 
             PaymentTransaction? paymentTransaction;
@@ -47,16 +52,25 @@ public class PaymentWebhookService : IPaymentWebhookService
             {
                 paymentTransaction = await _dbContext.PaymentTransactions
                     .FirstOrDefaultAsync(x => x.Id == donation.PaymentTransactionId.Value, cancellationToken);
+
+                if (paymentTransaction is null)
+                {
+                    return new Error("PaymentTransaction.NotFound", $"Payment transaction '{donation.PaymentTransactionId.Value}' was not found.");
+                }
             }
             else
             {
                 paymentTransaction = null;
             }
 
+            var shouldIncreaseCurrentAmount = donation.Status != DonationStatus.Completed &&
+                                              request.DonationStatus == DonationStatus.Completed;
+
             if (paymentTransaction is null)
             {
                 paymentTransaction = new PaymentTransaction
                 {
+                    Id = Guid.NewGuid(),
                     Provider = request.Provider,
                     ProviderTransactionId = request.ProviderTransactionId,
                     Status = request.TransactionStatus,
@@ -67,21 +81,6 @@ public class PaymentWebhookService : IPaymentWebhookService
                 };
 
                 _dbContext.PaymentTransactions.Add(paymentTransaction);
-                try
-                {
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                }
-                catch (DbUpdateException) when (!string.IsNullOrWhiteSpace(request.ProviderTransactionId))
-                {
-                    _dbContext.Entry(paymentTransaction).State = EntityState.Detached;
-
-                    paymentTransaction = await _dbContext.PaymentTransactions
-                        .FirstOrDefaultAsync(
-                            x => x.Provider == request.Provider &&
-                                 x.ProviderTransactionId == request.ProviderTransactionId,
-                            cancellationToken)
-                        ?? throw new InvalidOperationException("Payment transaction could not be loaded after idempotency conflict.");
-                }
             }
             else
             {
@@ -89,9 +88,6 @@ public class PaymentWebhookService : IPaymentWebhookService
                 paymentTransaction.Metadata = request.Metadata;
                 paymentTransaction.WebhookPayload = request.WebhookPayload;
             }
-
-            var shouldIncreaseCurrentAmount = donation.Status != DonationStatus.Completed &&
-                                              request.DonationStatus == DonationStatus.Completed;
 
             donation.Status = request.DonationStatus;
             donation.PaymentTransactionId = paymentTransaction.Id;
@@ -105,6 +101,8 @@ public class PaymentWebhookService : IPaymentWebhookService
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
+
+            return Result.Success();
         });
     }
 }

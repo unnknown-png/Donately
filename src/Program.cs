@@ -1,6 +1,7 @@
 using Donately.Application.Interfaces;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
+using Donately.Infrastructure.Middleware;
 using Donately.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -46,7 +47,6 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -67,6 +67,8 @@ app.UseSerilogRequestLogging(options =>
         return Serilog.Events.LogEventLevel.Information;
     };
 });
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
