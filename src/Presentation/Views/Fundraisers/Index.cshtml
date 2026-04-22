@@ -5,13 +5,198 @@
 <section class="app-section">
     <div class="section-header">
         <h1 class="section-title">@ViewData["Title"]</h1>
-        <p class="section-subtitle">Тут згодом з’явиться список актуальних зборів.</p>
+        <p class="section-subtitle">Поки що це візуальний макет: ліворуч блок фільтрів, праворуч — сітка зборів у 3 колонки.</p>
     </div>
 
-    <div class="placeholder-card donation-placeholder-card">
-        <div class="placeholder-card__line placeholder-card__line--wide"></div>
-        <div class="placeholder-card__line"></div>
-        <div class="placeholder-card__line placeholder-card__line--short"></div>
+    <div class="fundraisers-layout">
+        <aside class="placeholder-card fundraisers-sidebar" aria-label="Фільтри зборів">
+            <div class="fundraisers-sidebar__header">
+                <p class="fundraisers-sidebar__kicker">Фільтрація</p>
+                <h2 class="fundraisers-sidebar__title">Знайти потрібний збір</h2>
+                <p class="fundraisers-sidebar__subtitle">Нижче — лише візуальні елементи, які згодом стануть активними фільтрами.</p>
+            </div>
+
+            <div class="fundraisers-filter-group">
+                <span class="fundraisers-filter-group__label">Категорія</span>
+                <div class="fundraisers-filter-chips">
+                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--active">Усі</button>
+                    <button type="button" class="fundraisers-filter-chip">Медицина</button>
+                    <button type="button" class="fundraisers-filter-chip">Допомога ЗСУ</button>
+                    <button type="button" class="fundraisers-filter-chip">Тварини</button>
+                </div>
+            </div>
+
+            <div class="fundraisers-filter-group">
+                <span class="fundraisers-filter-group__label">Статус</span>
+                <div class="fundraisers-filter-chips">
+                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Активні</button>
+                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Термінові</button>
+                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Нові</button>
+                </div>
+            </div>
+
+            <div class="fundraisers-filter-group">
+                <span class="fundraisers-filter-group__label">Мета збору</span>
+                <div class="fundraisers-filter-range">
+                    <div class="fundraisers-filter-range__track">
+                        <span class="fundraisers-filter-range__fill"></span>
+                    </div>
+                    <div class="fundraisers-filter-range__labels">
+                        <span>0 ₴</span>
+                        <span>100 000 ₴</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fundraisers-sidebar__note">
+                Тут згодом можна буде додати пошук, сортування та інші параметри.
+            </div>
+        </aside>
+
+        <div class="fundraisers-content">
+            <div class="fundraisers-toolbar">
+                <div>
+                    <p class="fundraisers-toolbar__kicker">Каталог</p>
+                    <h2 class="fundraisers-toolbar__title">Підтримайте збір, який вам близький</h2>
+                </div>
+
+                <p class="fundraisers-toolbar__hint">Показано 6 прикладів карток</p>
+            </div>
+
+            <div class="fundraisers-grid">
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Медицина</span>
+                            <span class="fundraiser-card__status">Активний</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Збір для лікування</h3>
+                        <p class="fundraiser-card__description">Візуальний приклад картки збору з коротким описом і базовою структурою.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 64%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>64% зібрано</span>
+                                <span>32 000 ₴ / 50 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Допомога ЗСУ</span>
+                            <span class="fundraiser-card__status">Терміново</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Збір на необхідне спорядження</h3>
+                        <p class="fundraiser-card__description">Приклад картки, який показує, як будуть виглядати картки у списку активних зборів.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 41%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>41% зібрано</span>
+                                <span>41 000 ₴ / 100 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Тварини</span>
+                            <span class="fundraiser-card__status">Новий</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Збір для притулку</h3>
+                        <p class="fundraiser-card__description">Ще один візуальний приклад картки, щоб одразу було видно сітку на 3 елементи.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 28%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>28% зібрано</span>
+                                <span>14 000 ₴ / 50 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Медицина</span>
+                            <span class="fundraiser-card__status">Активний</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Підтримка реабілітації</h3>
+                        <p class="fundraiser-card__description">Макет картки для майбутніх реальних зборів з аналогічною структурою.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 77%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>77% зібрано</span>
+                                <span>77 000 ₴ / 100 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Діти</span>
+                            <span class="fundraiser-card__status">Активний</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Збір для навчання</h3>
+                        <p class="fundraiser-card__description">Тут буде ще одна картка у загальній сітці, щоб показати рівний ритм сторінки.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 52%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>52% зібрано</span>
+                                <span>26 000 ₴ / 50 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="placeholder-card fundraiser-card">
+                    <div class="fundraiser-card__media"></div>
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">Підтримка</span>
+                            <span class="fundraiser-card__status">Новий</span>
+                        </div>
+                        <h3 class="fundraiser-card__title">Збір на важливі потреби</h3>
+                        <p class="fundraiser-card__description">Заглушка картки для майбутнього наповнення реальними даними з бекенду.</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: 33%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>33% зібрано</span>
+                                <span>33 000 ₴ / 100 000 ₴</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
     </div>
 </section>
 
