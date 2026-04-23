@@ -1,0 +1,109 @@
+using System.Security.Claims;
+using Donately.Application.Interfaces;
+using Donately.Application.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Donately.Controllers;
+
+[Authorize]
+public class VerificationController : Controller
+{
+    private readonly IVerificationService _verificationService;
+
+    public VerificationController(IVerificationService verificationService)
+    {
+        _verificationService = verificationService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Email(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var result = await _verificationService.GetEmailVerificationAsync(userId, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            TempData["VerificationError"] = result.Error.Message;
+            return RedirectToAction("Index", "Profile");
+        }
+
+        if (TempData["VerificationSuccess"] is string successMessage)
+        {
+            ViewData["VerificationSuccess"] = successMessage;
+        }
+
+        if (TempData["VerificationError"] is string errorMessage)
+        {
+            ViewData["VerificationError"] = errorMessage;
+        }
+
+        return View(result.Value);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Email(EmailVerificationViewModel model, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _verificationService.SendEmailVerificationAsync(
+            new StartEmailVerificationRequest(userId, model.Email),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, result.Error.Message);
+            return View(model);
+        }
+
+        model.EmailSent = true;
+        model.EmailConfirmed = false;
+        ModelState.Clear();
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmEmail(Guid requestId, string token, CancellationToken cancellationToken)
+    {
+        var result = await _verificationService.ConfirmEmailAsync(
+            new ConfirmEmailVerificationRequest(requestId, token),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            TempData["VerificationError"] = result.Error.Message;
+            return RedirectToAction(nameof(Email));
+        }
+
+        TempData["VerificationSuccess"] = "Email успішно підтверджено.";
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Profile");
+        }
+
+        return RedirectToAction("Login", "Auth", new { returnUrl = Url.Action("Index", "Profile") });
+    }
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(userIdValue, out userId);
+    }
+}
+
+

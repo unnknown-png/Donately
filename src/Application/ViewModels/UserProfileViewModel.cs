@@ -18,6 +18,8 @@ public class UserProfileViewModel
 
     public DateTime? DateOfBirth { get; init; }
 
+    public bool EmailConfirmed { get; init; }
+
     public DateTime CreatedAt { get; init; }
 }
 

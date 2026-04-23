@@ -8,11 +8,21 @@ public class VerificationRequest
 
     public ApplicationUser User { get; set; } = null!;
 
-    public Guid AttachmentId { get; set; }
+    public string Email { get; set; } = string.Empty;
 
-    public Attachment Attachment { get; set; } = null!;
+    public string? EmailConfirmationTokenHash { get; set; }
 
-    public VerificationRequestStatus Status { get; set; } = VerificationRequestStatus.Pending;
+    public DateTime? EmailConfirmationTokenExpiresAt { get; set; }
+
+    public DateTime? EmailConfirmedAt { get; set; }
+
+    public DateTime? PhoneNumberConfirmedAt { get; set; }
+
+    public Guid? AttachmentId { get; set; }
+
+    public Attachment? Attachment { get; set; }
+
+    public VerificationRequestStatus Status { get; set; } = VerificationRequestStatus.NotStarted;
 
     public Guid? ReviewedById { get; set; }
 

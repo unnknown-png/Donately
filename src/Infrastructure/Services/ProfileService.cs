@@ -44,6 +44,7 @@ public class ProfileService : IProfileService
             ProfileImagePath = user.ProfileImagePath,
             PhoneNumber = user.PhoneNumber,
             DateOfBirth = user.DateOfBirth,
+            EmailConfirmed = user.EmailConfirmed,
             CreatedAt = user.CreatedAt
         };
     }
@@ -105,6 +106,7 @@ public class ProfileService : IProfileService
         user.NormalizedUserName = _userManager.NormalizeName(normalizedUserName);
         user.Email = normalizedEmail;
         user.NormalizedEmail = _userManager.NormalizeEmail(normalizedEmail);
+        user.EmailConfirmed = false;
         user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
         user.DateOfBirth = request.DateOfBirth?.Date;
 

@@ -14,17 +14,19 @@
         <form asp-action="Login" asp-controller="Auth" method="post" class="auth-form" novalidate>
             @Html.AntiForgeryToken()
 
+            <input asp-for="ReturnUrl" type="hidden" />
+
             <div asp-validation-summary="ModelOnly" class="text-danger auth-validation"></div>
 
             <div class="auth-form__group">
                 <label asp-for="Email" class="auth-form__label">Email</label>
-                <input asp-for="Email" class="form-control auth-form__input" autocomplete="email" />
+                <input asp-for="Email" class="form-control auth-form__input" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
             <div class="auth-form__group">
                 <label asp-for="Password" class="auth-form__label">Пароль</label>
-                <input asp-for="Password" class="form-control auth-form__input" autocomplete="current-password" />
+                <input asp-for="Password" class="form-control auth-form__input" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 

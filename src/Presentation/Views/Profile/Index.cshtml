@@ -180,34 +180,56 @@
             <div class="profile-card__header">
                 <div>
                     <h2 class="profile-card__title">Верифікація</h2>
-                    <p class="profile-card__subtitle">Після виконання кроків користувач зможе донатити на збори.</p>
+                    <p class="profile-card__subtitle">Виконай кроки нижче, щоб перейти до статусу очікування верифікації.</p>
                 </div>
 
-                <span class="profile-verification__pill">В процесі</span>
+                <span class="profile-verification__pill">@(Model.EmailConfirmed ? "Email підтверджено" : "Не розпочато")</span>
             </div>
 
             <div class="profile-verification__steps">
-                <div class="profile-verification__step profile-verification__step--done">
-                    <span class="profile-verification__step-index">1</span>
-                    <div>
-                        <p class="profile-verification__step-title">Підтвердити email</p>
-                        <p class="profile-verification__step-text">Базовий крок для активації профілю.</p>
+                <div class="profile-verification__step @(Model.EmailConfirmed ? "profile-verification__step--done" : "profile-verification__step--active")">
+                    <span class="profile-verification__step-index @(Model.EmailConfirmed ? "profile-verification__step-index--done" : string.Empty)">
+                        @(Model.EmailConfirmed ? "✓" : "1")
+                    </span>
+                    <div class="profile-verification__step-content">
+                        <div class="profile-verification__step-header">
+                            <p class="profile-verification__step-title">Підтвердження мейлу</p>
+
+                            @if (Model.EmailConfirmed)
+                            {
+                                <span class="profile-verification__step-status profile-verification__step-status--success">Підтверджено</span>
+                            }
+                            else
+                            {
+                                <a asp-controller="Verification" asp-action="Email" class="btn btn-primary btn-sm profile-verification__start-button">Розпочати</a>
+                            }
+                        </div>
+
+                        <p class="profile-verification__step-text">@(Model.EmailConfirmed ? "Email успішно підтверджено." : "Підтверди email, щоб перейти до наступних етапів верифікації.")</p>
                     </div>
                 </div>
 
                 <div class="profile-verification__step profile-verification__step--active">
                     <span class="profile-verification__step-index">2</span>
                     <div>
-                        <p class="profile-verification__step-title">Додати документ</p>
-                        <p class="profile-verification__step-text">Тут буде крок для верифікації користувача в майбутньому.</p>
+                        <p class="profile-verification__step-title">Підтвердження номеру телефону</p>
+                        <p class="profile-verification__step-text">Тут буде крок для перевірки номеру телефону користувача.</p>
                     </div>
                 </div>
 
                 <div class="profile-verification__step">
                     <span class="profile-verification__step-index">3</span>
                     <div>
+                        <p class="profile-verification__step-title">Додати документ</p>
+                        <p class="profile-verification__step-text">Тут буде контейнер для завантаження документа на перевірку.</p>
+                    </div>
+                </div>
+
+                <div class="profile-verification__step">
+                    <span class="profile-verification__step-index">4</span>
+                    <div>
                         <p class="profile-verification__step-title">Отримати статус</p>
-                        <p class="profile-verification__step-text">Після перевірки відкривається можливість донатити на збори.</p>
+                        <p class="profile-verification__step-text">Після надсилання всіх даних ви отримаєте статус очікування верифікації.</p>
                     </div>
                 </div>
             </div>
