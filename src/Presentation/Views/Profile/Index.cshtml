@@ -1,41 +1,106 @@
+@model UserProfileViewModel
+
 @{
     ViewData["Title"] = "Твій профіль";
+    var profileSince = $"Разом з Donately від {Model.CreatedAt.ToLocalTime():dd.MM.yyyy}";
 
-    var profileName = "Андрій Кахновець";
-    var profileRole = "Адміністратор";
-    var profileBio = "Студент Львівського національного університету імені Івана Франка";
-    var profileSince = "Разом з Donately від 21.04.2026";
-    var profileLocation = "Львів, Україна";
+    var fullNameParts = Model.FullName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Where(x => x.Any(char.IsLetter))
+        .Take(2)
+        .Select(x => char.ToUpperInvariant(x.First(char.IsLetter)))
+        .ToArray();
+
+    var initials = fullNameParts.Length > 0
+        ? string.Concat(fullNameParts)
+        : string.Concat(Model.UserName.Where(char.IsLetter).Take(2)).ToUpperInvariant();
+
+    if (string.IsNullOrWhiteSpace(initials))
+    {
+        initials = "👤";
+    }
+
+    var hasAvatar = !string.IsNullOrWhiteSpace(Model.ProfileImagePath);
 }
 
 <section class="app-section">
+    @if (TempData["ProfileSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success profile-alert" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["ProfileError"] is string errorMessage)
+    {
+        <div class="alert alert-danger profile-alert" role="alert">@errorMessage</div>
+    }
+
     <div class="section-header">
         <h1 class="section-title">@ViewData["Title"]</h1>
-        <p class="section-subtitle">Візуальний макет профілю з трьома горизонтальними блоками в нашому стилі.</p>
     </div>
 
     <div class="profile-stack">
         <article class="placeholder-card profile-card profile-card--summary">
-            <div class="profile-card__avatar-wrap" aria-hidden="true">
-                <div class="profile-card__avatar">АК</div>
-                <span class="profile-card__avatar-badge">✓</span>
+            <div class="profile-card__avatar-wrap">
+                <form asp-controller="Profile" asp-action="UpdateAvatar" method="post" enctype="multipart/form-data" class="profile-avatar-form">
+                    @Html.AntiForgeryToken()
+                    <input id="avatarInput" name="avatar" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="profile-avatar-form__input" data-avatar-input />
+
+                    <label for="avatarInput" class="profile-avatar-form__trigger" title="Змінити аватар">
+                        @if (hasAvatar)
+                        {
+                            <img src="@Model.ProfileImagePath" alt="Аватар користувача" class="profile-card__avatar-image" />
+                        }
+                        else
+                        {
+                            <span class="profile-card__avatar">@initials</span>
+                        }
+                    </label>
+                </form>
             </div>
 
             <div class="profile-card__content">
                 <div class="profile-card__identity">
                     <div>
-                        <p class="profile-card__name">@profileName</p>
-                        <p class="profile-card__role">@profileRole</p>
+                        <p class="profile-card__name">@Model.FullName</p>
+                        <p class="profile-card__role">@@@Model.UserName</p>
                     </div>
-
-                    <span class="profile-card__status">Верифікований</span>
+                    <span class="profile-card__status">Новий користувач</span>
                 </div>
 
-                <p class="profile-card__bio">@profileBio</p>
+                <div class="profile-about">
+                    <span class="profile-about__label">Про себе</span>
+
+                    <button type="button" class="profile-about__display" data-profile-about-open>
+                        @(string.IsNullOrWhiteSpace(Model.Bio) ? "Натисни, щоб додати інформацію про себе" : Model.Bio)
+                    </button>
+
+                    <form asp-controller="Profile" asp-action="UpdateBio" method="post" class="profile-about__form" data-profile-about-form hidden>
+                        @Html.AntiForgeryToken()
+                        <textarea name="Bio" class="form-control profile-about__textarea" rows="3" maxlength="1000" placeholder="Напиши коротко про себе">@Model.Bio</textarea>
+                        <div class="profile-about__actions">
+                            <button type="submit" class="btn btn-primary btn-sm">Зберегти</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-profile-about-cancel>Скасувати</button>
+                        </div>
+                    </form>
+                </div>
 
                 <div class="profile-card__meta">
-                    <span class="profile-card__meta-item">@profileLocation</span>
                     <span class="profile-card__meta-item">@profileSince</span>
+
+                    <div class="profile-card__meta-item profile-location">
+                        <button type="button" class="profile-location__display" data-profile-location-open>
+                            @(string.IsNullOrWhiteSpace(Model.Location) ? "Натисни, щоб додати місто, країну" : Model.Location)
+                        </button>
+
+                        <form asp-controller="Profile" asp-action="UpdateLocation" method="post" class="profile-location__form" data-profile-location-form hidden>
+                            @Html.AntiForgeryToken()
+                            <input name="Location" value="@Model.Location" class="form-control profile-location__input" maxlength="200" placeholder="Місто, країна" />
+                            <div class="profile-about__actions">
+                                <button type="submit" class="btn btn-primary btn-sm">Зберегти</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-profile-location-cancel>Скасувати</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </article>
@@ -43,37 +108,72 @@
         <article class="placeholder-card profile-card profile-card--details">
             <div class="profile-card__header">
                 <div>
-                    <h2 class="profile-card__title">Personal Information</h2>
-                    <p class="profile-card__subtitle">Основні дані профілю, які користувач зможе змінити через редагування.</p>
+                    <h2 class="profile-card__title">Особисті дані</h2>
                 </div>
 
-                <button type="button" class="profile-edit-button">
+                <button type="button" class="profile-edit-button" data-profile-edit-open>
                     <span>Редагувати</span>
                     <span aria-hidden="true">✎</span>
                 </button>
             </div>
 
-            <div class="profile-info-grid">
+            <div class="profile-info-grid" data-profile-details-display>
                 <div class="profile-info-item">
-                    <span class="profile-info-item__label">Full Name</span>
-                    <strong class="profile-info-item__value">@profileName</strong>
+                    <span class="profile-info-item__label">Username</span>
+                    <strong class="profile-info-item__value">@Model.UserName</strong>
                 </div>
 
                 <div class="profile-info-item">
-                    <span class="profile-info-item__label">Email Address</span>
-                    <strong class="profile-info-item__value">kahnovets.ap@gmail.com</strong>
+                    <span class="profile-info-item__label">Full Name</span>
+                    <strong class="profile-info-item__value">@Model.FullName</strong>
+                </div>
+
+                <div class="profile-info-item">
+                    <span class="profile-info-item__label">Email</span>
+                    <strong class="profile-info-item__value">@Model.Email</strong>
                 </div>
 
                 <div class="profile-info-item">
                     <span class="profile-info-item__label">Phone Number</span>
-                    <strong class="profile-info-item__value">+(380) 96 916 3732</strong>
+                    <strong class="profile-info-item__value">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "—" : Model.PhoneNumber)</strong>
                 </div>
 
                 <div class="profile-info-item">
                     <span class="profile-info-item__label">Date of Birth</span>
-                    <strong class="profile-info-item__value">13-12-2005</strong>
+                    <strong class="profile-info-item__value">@(Model.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</strong>
                 </div>
             </div>
+
+            <form asp-controller="Profile" asp-action="UpdateDetails" method="post" class="profile-edit-form" data-profile-details-form hidden>
+                @Html.AntiForgeryToken()
+
+                <div class="profile-edit-form__grid">
+                    <div class="profile-edit-form__field">
+                        <label for="editUserName" class="profile-edit-form__label">Username</label>
+                        <input id="editUserName" name="UserName" value="@Model.UserName" class="form-control" maxlength="50" required />
+                    </div>
+
+                    <div class="profile-edit-form__field">
+                        <label for="editEmail" class="profile-edit-form__label">Email</label>
+                        <input id="editEmail" name="Email" type="email" value="@Model.Email" class="form-control" required />
+                    </div>
+
+                    <div class="profile-edit-form__field">
+                        <label for="editPhoneNumber" class="profile-edit-form__label">Phone Number</label>
+                        <input id="editPhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" class="form-control" maxlength="30" />
+                    </div>
+
+                    <div class="profile-edit-form__field">
+                        <label for="editDateOfBirth" class="profile-edit-form__label">Date of Birth</label>
+                        <input id="editDateOfBirth" name="DateOfBirth" type="date" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="profile-edit-form__actions">
+                    <button type="submit" class="btn btn-primary btn-sm">Зберегти зміни</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-profile-edit-cancel>Скасувати</button>
+                </div>
+            </form>
         </article>
 
         <article class="placeholder-card profile-card profile-card--verification">
@@ -111,6 +211,13 @@
                     </div>
                 </div>
             </div>
+        </article>
+
+        <article class="placeholder-card profile-card profile-card--logout">
+            <form asp-controller="Auth" asp-action="Logout" method="post" class="profile-logout-form">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger profile-logout-button">Вийти з акаунту</button>
+            </form>
         </article>
     </div>
 </section>

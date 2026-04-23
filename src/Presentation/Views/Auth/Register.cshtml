@@ -1,0 +1,58 @@
+@model RegisterViewModel
+
+@{
+    ViewData["Title"] = "Реєстрація";
+}
+
+<section class="auth-page">
+    <article class="placeholder-card auth-card">
+        <div class="auth-card__header">
+            <h1 class="auth-card__title">Створи акаунт</h1>
+            <p class="auth-card__subtitle">Приєднуйся до Donately вже зараз!</p>
+        </div>
+
+        <form asp-action="Register" asp-controller="Auth" method="post" class="auth-form" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="text-danger auth-validation"></div>
+
+            <div class="auth-form__group">
+                <label asp-for="UserName" class="auth-form__label">Nickname</label>
+                <input asp-for="UserName" class="form-control auth-form__input" autocomplete="username" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+
+            <div class="auth-form__group">
+                <label asp-for="FullName" class="auth-form__label">Повне імʼя</label>
+                <input asp-for="FullName" class="form-control auth-form__input" autocomplete="name" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="auth-form__group">
+                <label asp-for="Email" class="auth-form__label">Email</label>
+                <input asp-for="Email" class="form-control auth-form__input" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="auth-form__group">
+                <label asp-for="Password" class="auth-form__label">Пароль</label>
+                <input asp-for="Password" class="form-control auth-form__input" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-check auth-form__checkbox-row">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label">Запам'ятати мене</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-form__submit">Зареєструватись</button>
+            <a class="btn btn-outline-primary auth-form__submit" asp-controller="Auth" asp-action="Login">Увійти</a>
+        </form>
+    </article>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+

@@ -63,7 +63,8 @@ public class FundraiserConfiguration : IEntityTypeConfiguration<Fundraiser>
             .IsRequired();
 
         builder.Property(x => x.RowVersion)
-            .IsRowVersion();
+            .HasColumnType("bytea")
+            .IsConcurrencyToken();
 
         builder.HasQueryFilter(x => !x.IsDeleted);
 
