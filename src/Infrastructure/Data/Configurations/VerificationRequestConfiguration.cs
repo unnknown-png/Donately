@@ -19,6 +19,9 @@ public class VerificationRequestConfiguration : IEntityTypeConfiguration<Verific
             .HasMaxLength(256)
             .IsRequired();
 
+        builder.Property(x => x.PhoneNumber)
+            .HasMaxLength(30);
+
         builder.Property(x => x.EmailConfirmationTokenHash)
             .HasMaxLength(128);
 

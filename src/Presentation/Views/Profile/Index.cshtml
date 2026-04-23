@@ -209,11 +209,23 @@
                     </div>
                 </div>
 
-                <div class="profile-verification__step profile-verification__step--active">
+                <div class="profile-verification__step @(Model.PhoneConfirmed ? "profile-verification__step--done" : "profile-verification__step--active")">
                     <span class="profile-verification__step-index">2</span>
-                    <div>
-                        <p class="profile-verification__step-title">Підтвердження номеру телефону</p>
-                        <p class="profile-verification__step-text">Тут буде крок для перевірки номеру телефону користувача.</p>
+                    <div class="profile-verification__step-content">
+                        <div class="profile-verification__step-header">
+                            <p class="profile-verification__step-title">Підтвердження номеру телефону</p>
+
+                            @if (Model.PhoneConfirmed)
+                            {
+                                <span class="profile-verification__step-status profile-verification__step-status--success">Підтверджено</span>
+                            }
+                            else
+                            {
+                                <a asp-controller="Verification" asp-action="Phone" class="btn btn-primary btn-sm profile-verification__start-button">Розпочати</a>
+                            }
+                        </div>
+
+                        <p class="profile-verification__step-text">@(Model.PhoneConfirmed ? "Номер телефону підтверджено успішно." : "Підтверди номер телефону через SMS-код, щоб перейти далі.")</p>
                     </div>
                 </div>
 

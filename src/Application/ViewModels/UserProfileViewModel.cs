@@ -16,6 +16,8 @@ public class UserProfileViewModel
 
     public string? PhoneNumber { get; init; }
 
+    public bool PhoneConfirmed { get; init; }
+
     public DateTime? DateOfBirth { get; init; }
 
     public bool EmailConfirmed { get; init; }

@@ -43,6 +43,7 @@ public class ProfileService : IProfileService
             .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 
         var emailConfirmed = verificationRequest?.EmailConfirmedAt.HasValue == true;
+        var phoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true;
         var verificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest, emailConfirmed);
 
         return new UserProfileViewModel
@@ -54,6 +55,7 @@ public class ProfileService : IProfileService
             Location = user.Location,
             ProfileImagePath = user.ProfileImagePath,
             PhoneNumber = user.PhoneNumber,
+            PhoneConfirmed = phoneConfirmed,
             DateOfBirth = user.DateOfBirth,
             EmailConfirmed = emailConfirmed,
             VerificationStatusLabel = verificationStatusLabel,
@@ -135,6 +137,7 @@ public class ProfileService : IProfileService
 
         if (verificationRequest is not null && phoneChanged)
         {
+            verificationRequest.PhoneNumber = normalizedPhoneNumber;
             verificationRequest.PhoneNumberConfirmedAt = null;
         }
 
@@ -145,6 +148,7 @@ public class ProfileService : IProfileService
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 Email = normalizedEmail,
+                PhoneNumber = normalizedPhoneNumber,
                 Status = VerificationRequestStatus.NotStarted,
                 CreatedAt = DateTime.UtcNow
             };

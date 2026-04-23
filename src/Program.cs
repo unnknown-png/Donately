@@ -50,6 +50,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.Configure<EmailSenderOptions>(
     builder.Configuration.GetSection(EmailSenderOptions.SectionName));
 
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();

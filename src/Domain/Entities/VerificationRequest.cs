@@ -10,6 +10,8 @@ public class VerificationRequest
 
     public string Email { get; set; } = string.Empty;
 
+    public string? PhoneNumber { get; set; }
+
     public string? EmailConfirmationTokenHash { get; set; }
 
     public DateTime? EmailConfirmationTokenExpiresAt { get; set; }

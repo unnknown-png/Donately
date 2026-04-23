@@ -52,6 +52,97 @@ public sealed class VerificationService : IVerificationService
         };
     }
 
+    public async Task<Result<PhoneVerificationViewModel>> GetPhoneVerificationAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        return new PhoneVerificationViewModel
+        {
+            PhoneNumber = verificationRequest?.PhoneNumber ?? user.PhoneNumber ?? string.Empty,
+            PhoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true,
+            PhoneSent = false,
+            VerificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest)
+        };
+    }
+
+    public async Task<Result> SendPhoneVerificationAsync(StartPhoneVerificationRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var normalizedPhoneNumber = NormalizePhoneNumber(request.PhoneNumber);
+        if (string.IsNullOrWhiteSpace(normalizedPhoneNumber))
+        {
+            return new Error("Verification.PhoneRequired", "Вкажіть номер телефону");
+        }
+
+        if (!IsValidE164PhoneNumber(normalizedPhoneNumber))
+        {
+            return new Error("Verification.PhoneInvalid", "Вкажіть номер у міжнародному форматі, наприклад +380XXXXXXXXX");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
+        if (verificationRequest is null)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                return new Error("Verification.EmailRequired", "Спочатку підтвердь email");
+            }
+
+            verificationRequest = new VerificationRequest
+            {
+                Id = Guid.NewGuid(),
+                UserId = request.UserId,
+                Email = user.Email.Trim(),
+                PhoneNumber = normalizedPhoneNumber,
+                EmailConfirmedAt = DateTime.UtcNow,
+                Status = VerificationRequestStatus.InProgress,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.VerificationRequests.Add(verificationRequest);
+        }
+        else
+        {
+            if (!verificationRequest.EmailConfirmedAt.HasValue)
+            {
+                return new Error("Verification.EmailRequired", "Спочатку підтвердь email");
+            }
+
+            if (verificationRequest.Status is VerificationRequestStatus.Approved)
+            {
+                return new Error("Verification.AlreadyApproved", "Ваша верифікація вже підтверджена");
+            }
+
+            if (verificationRequest.Status is VerificationRequestStatus.Rejected)
+            {
+                return new Error("Verification.RequestRejected", "Запит на верифікацію вже відхилено");
+            }
+
+            verificationRequest.PhoneNumber = normalizedPhoneNumber;
+            verificationRequest.PhoneNumberConfirmedAt = null;
+            verificationRequest.Status = VerificationRequestStatus.InProgress;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Success.Value;
+    }
+
     public async Task<Result> SendEmailVerificationAsync(StartEmailVerificationRequest request, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(request.UserId.ToString());
@@ -199,6 +290,56 @@ public sealed class VerificationService : IVerificationService
         return Success.Value;
     }
 
+    public async Task<Result> ConfirmPhoneAsync(ConfirmPhoneVerificationRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
+        if (verificationRequest is null || !verificationRequest.EmailConfirmedAt.HasValue)
+        {
+            return new Error("Verification.EmailRequired", "Спочатку підтвердь email");
+        }
+
+        if (verificationRequest.PhoneNumberConfirmedAt.HasValue)
+        {
+            return Success.Value;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            return new Error("Verification.CodeRequired", "Вкажіть код підтвердження");
+        }
+
+        if (!string.IsNullOrWhiteSpace(verificationRequest.PhoneNumber))
+        {
+            user.PhoneNumber = verificationRequest.PhoneNumber.Trim();
+        }
+
+        user.VerificationStatus = VerificationStatus.InProgress;
+        user.IsVerified = false;
+        verificationRequest.PhoneNumberConfirmedAt = DateTime.UtcNow;
+        verificationRequest.Status = VerificationRequestStatus.InProgress;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var error = updateResult.Errors.FirstOrDefault();
+            return new Error(
+                $"Verification.{error?.Code ?? "PhoneConfirmationFailed"}",
+                error?.Description ?? "Не вдалося підтвердити номер телефону");
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Success.Value;
+    }
+
     private static string ResolveVerificationStatusLabel(
         VerificationStatus userStatus,
         VerificationRequest? verificationRequest)
@@ -250,6 +391,34 @@ public sealed class VerificationService : IVerificationService
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
         return Convert.ToHexString(bytes);
+    }
+
+    private static string NormalizePhoneNumber(string phoneNumber)
+    {
+        return phoneNumber.Trim().Replace(" ", string.Empty).Replace("-", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty);
+    }
+
+    private static bool IsValidE164PhoneNumber(string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber) || !phoneNumber.StartsWith('+'))
+        {
+            return false;
+        }
+
+        if (phoneNumber.Length is < 8 or > 16)
+        {
+            return false;
+        }
+
+        for (var i = 1; i < phoneNumber.Length; i++)
+        {
+            if (!char.IsDigit(phoneNumber[i]))
+            {
+                return false;
+            }
+        }
+
+        return phoneNumber[1] is not '0';
     }
 }
 
