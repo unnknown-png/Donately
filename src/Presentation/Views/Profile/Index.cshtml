@@ -214,6 +214,13 @@
                 </div>
             </div>
         </article>
+
+        <article class="placeholder-card profile-card profile-card--logout">
+            <form asp-controller="Auth" asp-action="Logout" method="post" class="profile-logout-form">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger profile-logout-button">Вийти з акаунту</button>
+            </form>
+        </article>
     </div>
 </section>
 

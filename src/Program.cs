@@ -1,4 +1,5 @@
 using Donately.Application.Interfaces;
+using Donately.Application.Common;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Donately.Infrastructure.Middleware;
@@ -46,9 +47,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Auth/Login";
 });
 
+builder.Services.Configure<EmailSenderOptions>(
+    builder.Configuration.GetSection(EmailSenderOptions.SectionName));
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 

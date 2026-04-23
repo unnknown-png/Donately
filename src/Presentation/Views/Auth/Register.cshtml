@@ -8,7 +8,7 @@
     <article class="placeholder-card auth-card">
         <div class="auth-card__header">
             <h1 class="auth-card__title">Створи акаунт</h1>
-            <p class="auth-card__subtitle">Заповни форму, щоб приєднатися до Donately.</p>
+            <p class="auth-card__subtitle">Приєднуйся до Donately вже зараз!</p>
         </div>
 
         <form asp-action="Register" asp-controller="Auth" method="post" class="auth-form" novalidate>
@@ -17,13 +17,13 @@
             <div asp-validation-summary="ModelOnly" class="text-danger auth-validation"></div>
 
             <div class="auth-form__group">
-                <label asp-for="UserName" class="auth-form__label">Username</label>
+                <label asp-for="UserName" class="auth-form__label">Nickname</label>
                 <input asp-for="UserName" class="form-control auth-form__input" autocomplete="username" />
                 <span asp-validation-for="UserName" class="text-danger"></span>
             </div>
 
             <div class="auth-form__group">
-                <label asp-for="FullName" class="auth-form__label">Full Name</label>
+                <label asp-for="FullName" class="auth-form__label">Повне імʼя</label>
                 <input asp-for="FullName" class="form-control auth-form__input" autocomplete="name" />
                 <span asp-validation-for="FullName" class="text-danger"></span>
             </div>

@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Donately.Domain.Entities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="utf-8" />
@@ -26,8 +30,27 @@
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a class="app-header__avatar" asp-area="" asp-controller="Profile" asp-action="Index" aria-label="Профіль користувача">
-                        <span class="app-header__avatar-icon" aria-hidden="true">👤</span>
+                    var currentUser = await UserManager.GetUserAsync(User);
+                    var headerUserName = currentUser?.UserName ?? User.Identity?.Name ?? "Користувач";
+                    var headerAvatarPath = string.IsNullOrWhiteSpace(currentUser?.ProfileImagePath)
+                        ? null
+                        : currentUser.ProfileImagePath;
+                    var headerAvatarFallback = string.IsNullOrWhiteSpace(headerUserName)
+                        ? "U"
+                        : headerUserName[..1].ToUpperInvariant();
+
+                    <a class="app-header__profile" asp-area="" asp-controller="Profile" asp-action="Index" aria-label="Профіль користувача">
+                        <span class="app-header__profile-name">@headerUserName</span>
+                        <span class="app-header__avatar">
+                            @if (headerAvatarPath is not null)
+                            {
+                                <img src="@headerAvatarPath" alt="Аватар користувача" class="app-header__avatar-image" />
+                            }
+                            else
+                            {
+                                <span class="app-header__avatar-fallback" aria-hidden="true">@headerAvatarFallback</span>
+                            }
+                        </span>
                     </a>
                 }
                 else

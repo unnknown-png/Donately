@@ -414,9 +414,32 @@ main {
   margin-bottom: 1rem;
 }
 
+.profile-card--logout {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profile-logout-form {
+  margin: 0;
+}
+
+.profile-logout-button {
+  border-radius: 0.9rem;
+  font-weight: 800;
+  padding: 0.6rem 1rem;
+}
+
 @media (max-width: 767.98px) {
   .profile-edit-form__grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-card--logout {
+    justify-content: stretch;
+  }
+
+  .profile-logout-button {
+    width: 100%;
   }
 }
 
@@ -911,10 +934,40 @@ main {
   background: #f8fbff;
   border: 1px solid rgba(13, 110, 253, 0.2);
   text-decoration: none;
+  overflow: hidden;
 }
 
 .app-header__avatar-icon {
   font-size: 1.2rem;
+}
+
+.app-header__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+}
+
+.app-header__profile-name {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+  color: #17324d;
+}
+
+.app-header__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.app-header__avatar-fallback {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #17324d;
 }
 
 .auth-page {
@@ -989,6 +1042,11 @@ main {
   margin-bottom: 0;
 }
 
+.auth-alert {
+  margin-bottom: 0;
+  border-radius: 0.9rem;
+}
+
 @media (max-width: 991.98px) {
   .app-header__container {
     flex-wrap: wrap;
@@ -1008,6 +1066,10 @@ main {
 @media (max-width: 575.98px) {
   .auth-card {
     padding: 1.2rem;
+  }
+
+  .app-header__profile-name {
+    display: none;
   }
 
   .app-header__auth-actions {
