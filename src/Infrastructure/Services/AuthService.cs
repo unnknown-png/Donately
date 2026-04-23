@@ -1,9 +1,7 @@
 using Donately.Application.Common.Results;
 using Donately.Application.Interfaces;
 using Donately.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing;
 using System.Text;
 
 namespace Donately.Infrastructure.Services;
@@ -50,7 +48,7 @@ public class AuthService : IAuthService
             FullName = request.FullName,
             Email = request.Email,
             NormalizedEmail = _userManager.NormalizeEmail(request.Email),
-            EmailConfirmed = false,
+            VerificationStatus = VerificationStatus.NotStarted,
             CreatedAt = DateTime.UtcNow
         };
 

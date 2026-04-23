@@ -56,6 +56,7 @@ public class VerificationController : Controller
 
         if (!ModelState.IsValid)
         {
+            await PopulateCurrentVerificationStateAsync(userId, model, cancellationToken);
             return View(model);
         }
 
@@ -66,11 +67,13 @@ public class VerificationController : Controller
         if (result.IsFailure)
         {
             ModelState.AddModelError(string.Empty, result.Error.Message);
+            await PopulateCurrentVerificationStateAsync(userId, model, cancellationToken);
             return View(model);
         }
 
         model.EmailSent = true;
         model.EmailConfirmed = false;
+        model.VerificationStatusLabel = "Не розпочато";
         ModelState.Clear();
         return View(model);
     }
@@ -103,6 +106,21 @@ public class VerificationController : Controller
     {
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(userIdValue, out userId);
+    }
+
+    private async Task PopulateCurrentVerificationStateAsync(
+        Guid userId,
+        EmailVerificationViewModel model,
+        CancellationToken cancellationToken)
+    {
+        var currentResult = await _verificationService.GetEmailVerificationAsync(userId, cancellationToken);
+
+        if (currentResult.IsSuccess)
+        {
+            model.Email = string.IsNullOrWhiteSpace(model.Email) ? currentResult.Value.Email : model.Email;
+            model.EmailConfirmed = currentResult.Value.EmailConfirmed;
+            model.VerificationStatusLabel = currentResult.Value.VerificationStatusLabel;
+        }
     }
 }
 

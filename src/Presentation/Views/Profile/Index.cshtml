@@ -183,7 +183,7 @@
                     <p class="profile-card__subtitle">Виконай кроки нижче, щоб перейти до статусу очікування верифікації.</p>
                 </div>
 
-                <span class="profile-verification__pill">@(Model.EmailConfirmed ? "Email підтверджено" : "Не розпочато")</span>
+                <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
             </div>
 
             <div class="profile-verification__steps">

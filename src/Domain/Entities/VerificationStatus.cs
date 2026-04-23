@@ -2,9 +2,11 @@ namespace Donately.Domain.Entities;
 
 public enum VerificationStatus
 {
-    None = 0,
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3
+    NotStarted = 0,
+    InProgress = 1,
+    InReview = 2,
+    Approved = 3,
+    Rejected = 4,
+    NeedsRevision = 5
 }
 

@@ -11,5 +11,7 @@ public class EmailVerificationViewModel
     public bool EmailSent { get; set; }
 
     public bool EmailConfirmed { get; set; }
+
+    public string VerificationStatusLabel { get; set; } = string.Empty;
 }
 

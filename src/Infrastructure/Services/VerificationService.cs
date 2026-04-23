@@ -40,10 +40,15 @@ public sealed class VerificationService : IVerificationService
             return new Error("Verification.UserNotFound", "Користувача не знайдено");
         }
 
+        var verificationRequest = await _dbContext.VerificationRequests
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
         return new EmailVerificationViewModel
         {
             Email = user.Email ?? string.Empty,
-            EmailConfirmed = user.EmailConfirmed
+            EmailConfirmed = verificationRequest?.EmailConfirmedAt.HasValue == true,
+            VerificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest)
         };
     }
 
@@ -64,13 +69,13 @@ public sealed class VerificationService : IVerificationService
             return new Error("Verification.EmailMismatch", "Вкажіть email, який зараз прив'язаний до вашого профілю");
         }
 
-        if (user.EmailConfirmed)
+        var verificationRequest = await _dbContext.VerificationRequests
+            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
+        if (verificationRequest?.EmailConfirmedAt.HasValue == true)
         {
             return new Error("Verification.EmailAlreadyConfirmed", "Пошта вже підтверджена");
         }
-
-        var verificationRequest = await _dbContext.VerificationRequests
-            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
 
         if (verificationRequest is null)
         {
@@ -79,7 +84,7 @@ public sealed class VerificationService : IVerificationService
                 Id = Guid.NewGuid(),
                 UserId = request.UserId,
                 Email = currentEmail,
-                Status = VerificationRequestStatus.InReview,
+                Status = VerificationRequestStatus.NotStarted,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -96,7 +101,7 @@ public sealed class VerificationService : IVerificationService
         else
         {
             verificationRequest.Email = currentEmail;
-            verificationRequest.Status = VerificationRequestStatus.InReview;
+            verificationRequest.Status = VerificationRequestStatus.NotStarted;
         }
 
         var token = GenerateToken();
@@ -174,11 +179,12 @@ public sealed class VerificationService : IVerificationService
             return new Error("Verification.EmailChanged", "Пошта у профілі була змінена, тому цей запит більше неактуальний");
         }
 
-        user.EmailConfirmed = true;
+        user.VerificationStatus = VerificationStatus.InProgress;
+        user.IsVerified = false;
         verificationRequest.EmailConfirmedAt = DateTime.UtcNow;
         verificationRequest.EmailConfirmationTokenHash = null;
         verificationRequest.EmailConfirmationTokenExpiresAt = null;
-        verificationRequest.Status = VerificationRequestStatus.InReview;
+        verificationRequest.Status = VerificationRequestStatus.InProgress;
 
         var updateResult = await _userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
@@ -191,6 +197,47 @@ public sealed class VerificationService : IVerificationService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return Success.Value;
+    }
+
+    private static string ResolveVerificationStatusLabel(
+        VerificationStatus userStatus,
+        VerificationRequest? verificationRequest)
+    {
+        if (verificationRequest is not null)
+        {
+            if (verificationRequest.EmailConfirmedAt.HasValue)
+            {
+                return verificationRequest.Status switch
+                {
+                    VerificationRequestStatus.Approved => "Підтверджено",
+                    VerificationRequestStatus.Rejected => "Відхилено",
+                    VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
+                    _ => "В процесі"
+                };
+            }
+
+            return verificationRequest.Status switch
+            {
+                VerificationRequestStatus.NotStarted => "Не розпочато",
+                VerificationRequestStatus.InProgress => "В процесі",
+                VerificationRequestStatus.InReview => "На перевірці",
+                VerificationRequestStatus.Approved => "Підтверджено",
+                VerificationRequestStatus.Rejected => "Відхилено",
+                VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
+                _ => "Не розпочато"
+            };
+        }
+
+        return userStatus switch
+        {
+            VerificationStatus.NotStarted => "Не розпочато",
+            VerificationStatus.InProgress => "В процесі",
+            VerificationStatus.InReview => "На перевірці",
+            VerificationStatus.Approved => "Підтверджено",
+            VerificationStatus.Rejected => "Відхилено",
+            VerificationStatus.NeedsRevision => "Потребує виправлень",
+            _ => "Не розпочато"
+        };
     }
 
     private static string GenerateToken()

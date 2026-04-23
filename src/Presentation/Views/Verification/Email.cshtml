@@ -11,6 +11,11 @@
             <p class="auth-card__subtitle">Вкажіть email, після чого ми надішлемо лист з посиланням для підтвердження.</p>
         </div>
 
+        @if (!string.IsNullOrWhiteSpace(Model.VerificationStatusLabel))
+        {
+            <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
+        }
+
         @if (ViewData["VerificationSuccess"] is string successMessage)
         {
             <div class="alert alert-success auth-alert" role="alert">

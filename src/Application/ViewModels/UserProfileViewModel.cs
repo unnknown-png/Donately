@@ -20,6 +20,8 @@ public class UserProfileViewModel
 
     public bool EmailConfirmed { get; init; }
 
+    public string VerificationStatusLabel { get; init; } = string.Empty;
+
     public DateTime CreatedAt { get; init; }
 }
 
