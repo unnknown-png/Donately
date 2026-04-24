@@ -1,0 +1,69 @@
+@model EmailVerificationViewModel
+
+@{
+    ViewData["Title"] = "Підтвердження пошти";
+}
+
+<section class="auth-page">
+    <article class="placeholder-card auth-card auth-card--compact">
+        <div class="auth-card__header">
+            <h1 class="auth-card__title">Підтвердження пошти</h1>
+            <p class="auth-card__subtitle">Вкажіть email, після чого ми надішлемо лист з посиланням для підтвердження.</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.VerificationStatusLabel))
+        {
+            <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
+        }
+
+        @if (ViewData["VerificationSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success auth-alert" role="alert">
+                @successMessage
+            </div>
+        }
+
+        @if (ViewData["VerificationError"] is string errorMessage)
+        {
+            <div class="alert alert-danger auth-alert" role="alert">
+                @errorMessage
+            </div>
+        }
+
+        @if (Model.EmailConfirmed)
+        {
+            <div class="alert alert-success auth-alert" role="alert">
+                Пошта вже підтверджена. Можеш повертатись до профілю.
+            </div>
+
+            <a asp-controller="Profile" asp-action="Index" class="btn btn-primary auth-form__submit">Повернутись до профілю</a>
+        }
+        else
+        {
+            @if (Model.EmailSent)
+            {
+                <div class="alert alert-success auth-alert" role="alert">
+                    Перевірте пошту: ми надіслали лист з посиланням для підтвердження email. Лист може потрапити у спам.
+                </div>
+            }
+
+            <form asp-action="Email" asp-controller="Verification" method="post" class="auth-form" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger auth-validation"></div>
+
+                <div class="auth-form__group">
+                    <label asp-for="Email" class="auth-form__label">Email</label>
+                    <input asp-for="Email" class="form-control auth-form__input" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-form__submit">Надіслати лист</button>
+                <a class="btn btn-outline-primary auth-form__submit" asp-controller="Profile" asp-action="Index">Повернутись до профілю</a>
+            </form>
+        }
+    </article>
+</section>
+
+
+

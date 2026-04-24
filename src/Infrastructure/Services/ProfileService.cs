@@ -2,13 +2,16 @@ using Donately.Application.Common.Results;
 using Donately.Application.Interfaces;
 using Donately.Application.ViewModels;
 using Donately.Domain.Entities;
+using Donately.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Donately.Infrastructure.Services;
 
 public class ProfileService : IProfileService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ApplicationDbContext _dbContext;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     private static readonly HashSet<string> AllowedAvatarExtensions =
@@ -19,9 +22,10 @@ public class ProfileService : IProfileService
 
     private const int MaxAvatarSizeInBytes = 2 * 1024 * 1024;
 
-    public ProfileService(UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
+    public ProfileService(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
         _webHostEnvironment = webHostEnvironment;
     }
 
@@ -34,6 +38,15 @@ public class ProfileService : IProfileService
             return new Error("Profile.NotFound", "Користувача не знайдено");
         }
 
+        var verificationRequest = await _dbContext.VerificationRequests
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        var emailConfirmed = verificationRequest?.EmailConfirmedAt.HasValue == true;
+        var phoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true;
+        var verificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest, emailConfirmed);
+        var currentVerificationStep = ResolveCurrentVerificationStep(user.VerificationStatus, emailConfirmed, phoneConfirmed);
+
         return new UserProfileViewModel
         {
             UserName = user.UserName ?? "—",
@@ -43,7 +56,11 @@ public class ProfileService : IProfileService
             Location = user.Location,
             ProfileImagePath = user.ProfileImagePath,
             PhoneNumber = user.PhoneNumber,
+            PhoneConfirmed = phoneConfirmed,
             DateOfBirth = user.DateOfBirth,
+            EmailConfirmed = emailConfirmed,
+            VerificationStatusLabel = verificationStatusLabel,
+            CurrentVerificationStep = currentVerificationStep,
             CreatedAt = user.CreatedAt
         };
     }
@@ -101,11 +118,54 @@ public class ProfileService : IProfileService
             return new Error("Profile.EmailTaken", "Користувач з таким email вже існує");
         }
 
+        var emailChanged = !string.Equals(user.Email?.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase);
+        var normalizedPhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+        var phoneChanged = !string.Equals(user.PhoneNumber?.Trim(), normalizedPhoneNumber, StringComparison.OrdinalIgnoreCase);
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        if (verificationRequest is not null && emailChanged)
+        {
+            verificationRequest.Email = normalizedEmail;
+            verificationRequest.EmailConfirmationTokenHash = null;
+            verificationRequest.EmailConfirmationTokenExpiresAt = null;
+            verificationRequest.EmailConfirmedAt = null;
+            verificationRequest.Status = VerificationRequestStatus.NotStarted;
+
+            user.IsVerified = false;
+            user.VerificationStatus = VerificationStatus.NotStarted;
+        }
+
+        if (verificationRequest is not null && phoneChanged)
+        {
+            verificationRequest.PhoneNumber = normalizedPhoneNumber;
+            verificationRequest.PhoneNumberConfirmedAt = null;
+        }
+
+        if (verificationRequest is null && (emailChanged || phoneChanged))
+        {
+            verificationRequest = new VerificationRequest
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Email = normalizedEmail,
+                PhoneNumber = normalizedPhoneNumber,
+                Status = VerificationRequestStatus.NotStarted,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.VerificationRequests.Add(verificationRequest);
+
+            user.IsVerified = false;
+            user.VerificationStatus = VerificationStatus.NotStarted;
+        }
+
         user.UserName = normalizedUserName;
         user.NormalizedUserName = _userManager.NormalizeName(normalizedUserName);
         user.Email = normalizedEmail;
         user.NormalizedEmail = _userManager.NormalizeEmail(normalizedEmail);
-        user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+        user.PhoneNumber = normalizedPhoneNumber;
         user.DateOfBirth = request.DateOfBirth?.Date;
 
         var updateResult = await _userManager.UpdateAsync(user);
@@ -116,6 +176,11 @@ public class ProfileService : IProfileService
             return new Error(
                 $"Profile.{error?.Code ?? "UpdateFailed"}",
                 error?.Description ?? "Не вдалося оновити профіль");
+        }
+
+        if (verificationRequest is not null)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         return Success.Value;
@@ -220,6 +285,76 @@ public class ProfileService : IProfileService
         {
             File.Delete(previousAbsolutePath);
         }
+    }
+
+    private static string ResolveVerificationStatusLabel(
+        VerificationStatus userStatus,
+        VerificationRequest? verificationRequest,
+        bool emailConfirmed)
+    {
+        if (verificationRequest is not null)
+        {
+            if (emailConfirmed)
+            {
+                return verificationRequest.Status switch
+                {
+                    VerificationRequestStatus.NotStarted => "Не розпочато",
+                    VerificationRequestStatus.InProgress => "В процесі",
+                    VerificationRequestStatus.InReview => "На перевірці",
+                    VerificationRequestStatus.Approved => "Верифіковано",
+                    VerificationRequestStatus.Rejected => "Відхилено",
+                    VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
+                    _ => "В процесі"
+                };
+            }
+
+            return verificationRequest.Status switch
+            {
+                VerificationRequestStatus.NotStarted => "Не розпочато",
+                VerificationRequestStatus.InProgress => "В процесі",
+                VerificationRequestStatus.InReview => "На перевірці",
+                VerificationRequestStatus.Approved => "Верифіковано",
+                VerificationRequestStatus.Rejected => "Відхилено",
+                VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
+                _ => "Не розпочато"
+            };
+        }
+
+        return userStatus switch
+        {
+            VerificationStatus.NotStarted => "Не розпочато",
+            VerificationStatus.InProgress => "В процесі",
+            VerificationStatus.InReview => "На перевірці",
+            VerificationStatus.Approved => "Верифіковано",
+            VerificationStatus.Rejected => "Відхилено",
+            VerificationStatus.NeedsRevision => "Потребує виправлень",
+            _ => "Не розпочато"
+        };
+    }
+
+    private static int ResolveCurrentVerificationStep(
+        VerificationStatus userStatus,
+        bool emailConfirmed,
+        bool phoneConfirmed)
+    {
+        if (!emailConfirmed)
+        {
+            return 1;
+        }
+
+        if (!phoneConfirmed)
+        {
+            return 2;
+        }
+
+        return userStatus switch
+        {
+            VerificationStatus.InReview => 4,
+            VerificationStatus.Approved => 5,
+            VerificationStatus.Rejected => 5,
+            VerificationStatus.NeedsRevision => 4,
+            _ => 3
+        };
     }
 }
 

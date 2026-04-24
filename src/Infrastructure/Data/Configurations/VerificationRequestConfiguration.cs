@@ -15,10 +15,32 @@ public class VerificationRequestConfiguration : IEntityTypeConfiguration<Verific
         builder.Property(x => x.Id)
             .HasDefaultValueSql("gen_random_uuid()");
 
+        builder.Property(x => x.Email)
+            .HasMaxLength(256)
+            .IsRequired();
+
+        builder.Property(x => x.PhoneNumber)
+            .HasMaxLength(30);
+
+        builder.Property(x => x.EmailConfirmationTokenHash)
+            .HasMaxLength(128);
+
+        builder.Property(x => x.EmailConfirmationTokenExpiresAt)
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(x => x.EmailConfirmedAt)
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(x => x.PhoneNumberConfirmedAt)
+            .HasColumnType("timestamp with time zone");
+
+        builder.Property(x => x.AttachmentId)
+            .IsRequired(false);
+
         builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(20)
-            .HasDefaultValue(VerificationRequestStatus.Pending)
+            .HasDefaultValue(VerificationRequestStatus.NotStarted)
             .IsRequired();
 
         builder.Property(x => x.Notes)
@@ -32,7 +54,8 @@ public class VerificationRequestConfiguration : IEntityTypeConfiguration<Verific
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => x.UserId).IsUnique();
+        builder.HasIndex(x => x.Email);
         builder.HasIndex(x => x.AttachmentId);
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.CreatedAt);

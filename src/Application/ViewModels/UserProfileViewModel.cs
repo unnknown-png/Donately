@@ -16,7 +16,15 @@ public class UserProfileViewModel
 
     public string? PhoneNumber { get; init; }
 
+    public bool PhoneConfirmed { get; init; }
+
     public DateTime? DateOfBirth { get; init; }
+
+    public bool EmailConfirmed { get; init; }
+
+    public string VerificationStatusLabel { get; init; } = string.Empty;
+
+    public int CurrentVerificationStep { get; init; }
 
     public DateTime CreatedAt { get; init; }
 }

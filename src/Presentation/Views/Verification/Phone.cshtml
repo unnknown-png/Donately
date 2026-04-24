@@ -1,0 +1,77 @@
+@model PhoneVerificationViewModel
+
+@{
+    ViewData["Title"] = "Підтвердження телефону";
+}
+
+<section class="auth-page">
+    <article class="placeholder-card auth-card auth-card--compact">
+        <div class="auth-card__header">
+            <h1 class="auth-card__title">Підтвердження номера телефону</h1>
+            <p class="auth-card__subtitle">Вкажи власний номер телефону та підтвердь його через тестовий код.</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.VerificationStatusLabel))
+        {
+            <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
+        }
+
+
+        @if (ViewData["VerificationError"] is string errorMessage)
+        {
+            <div class="alert alert-danger auth-alert" role="alert">
+                @errorMessage
+            </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            @Html.ValidationSummary(false, string.Empty, new { @class = "alert alert-danger auth-alert" })
+        }
+
+        @if (Model.PhoneConfirmed)
+        {
+            <div class="alert alert-success auth-alert" role="alert">
+                Номер телефону вже підтверджено.
+            </div>
+
+            <a asp-controller="Profile" asp-action="Index" class="btn btn-primary auth-form__submit">Повернутись до профілю</a>
+        }
+        else
+        {
+            <form asp-controller="Verification" asp-action="Phone" method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+                <div class="auth-form__group">
+                    <label for="phoneNumberInput" class="auth-form__label">Номер телефону</label>
+                    <input id="phoneNumberInput" name="PhoneNumber" class="form-control auth-form__input" type="tel" value="@Model.PhoneNumber" placeholder="+380XXXXXXXXX" />
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-form__submit">@(!Model.PhoneSent ? "Надіслати тестовий код" : "Надіслати ще раз")</button>
+            </form>
+
+            <div class="auth-form">
+                @if (Model.PhoneSent)
+                {
+                    <div class="auth-form__group">
+                        <div class="alert alert-info auth-alert" role="alert">
+                            Тестовий код підготовлено. Для симуляції введи будь-який код нижче.
+                        </div>
+                        <label for="smsCodeInput" class="auth-form__label">Код підтвердження</label>
+                        <input id="smsCodeInput" form="completePhoneForm" name="Code" class="form-control auth-form__input" inputmode="numeric" placeholder="Введи будь-який код" />
+                    </div>
+
+                    <button type="submit" form="completePhoneForm" class="btn btn-outline-primary auth-form__submit">Підтвердити код</button>
+                }
+
+                <a asp-controller="Profile" asp-action="Index" class="btn btn-outline-primary auth-form__submit">Повернутись до профілю</a>
+            </div>
+
+            <form asp-controller="Verification" asp-action="CompletePhone" method="post" id="completePhoneForm" hidden>
+                @Html.AntiForgeryToken()
+            </form>
+        }
+    </article>
+</section>
+
+
+

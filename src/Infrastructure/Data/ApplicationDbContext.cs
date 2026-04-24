@@ -36,6 +36,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
         {
             entity.ToTable("Users");
 
+            entity.Ignore(x => x.EmailConfirmed);
+            entity.Ignore(x => x.PhoneNumberConfirmed);
+            entity.Ignore(x => x.TwoFactorEnabled);
+
             entity.Property(x => x.Id)
                 .HasDefaultValueSql("gen_random_uuid()");
 
@@ -47,7 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
 
             entity.Property(x => x.VerificationStatus)
                 .HasConversion<int>()
-                .HasDefaultValue(VerificationStatus.None);
+                .HasDefaultValue(VerificationStatus.NotStarted);
 
             entity.Property(x => x.ProfileImagePath)
                 .HasMaxLength(500);

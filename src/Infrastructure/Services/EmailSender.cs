@@ -54,5 +54,42 @@ public sealed class EmailSender : IEmailSender
         _logger.LogError("SendGrid повернув помилку {StatusCode} для {Email}", response.StatusCode, request.ToEmail);
         return new Error("Email.SendFailed", "Не вдалося відправити лист для скидання пароля");
     }
+
+    public async Task<Result> SendEmailVerificationEmailAsync(SendEmailVerificationEmailRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ToEmail))
+        {
+            return new Error("Email.Empty", "Email не може бути порожнім");
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.SendGridKey))
+        {
+            _logger.LogError("SendGrid key не налаштований.");
+            return new Error("Email.Configuration", "Сервіс email тимчасово недоступний");
+        }
+
+        var message = new SendGridMessage
+        {
+            From = new EmailAddress(_options.FromAddress, _options.FromName),
+            Subject = "Підтвердження пошти Donately",
+            PlainTextContent = $"Щоб підтвердити пошту, відкрийте посилання: {request.VerificationLink}",
+            HtmlContent = $"<p>Ви розпочали підтвердження пошти в Donately.</p><p>Натисніть <a href=\"{request.VerificationLink}\">це посилання</a>, щоб підтвердити email.</p><p>Якщо ви не ініціювали цей запит, просто проігноруйте цей лист.</p>"
+        };
+
+        message.AddTo(new EmailAddress(request.ToEmail));
+        message.SetClickTracking(false, false);
+
+        var client = new SendGridClient(_options.SendGridKey);
+        var response = await client.SendEmailAsync(message, cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Лист для підтвердження пошти відправлено на {Email}", request.ToEmail);
+            return Success.Value;
+        }
+
+        _logger.LogError("SendGrid повернув помилку {StatusCode} для {Email}", response.StatusCode, request.ToEmail);
+        return new Error("Email.SendFailed", "Не вдалося відправити лист для підтвердження пошти");
+    }
 }
 

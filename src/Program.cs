@@ -50,12 +50,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.Configure<EmailSenderOptions>(
     builder.Configuration.GetSection(EmailSenderOptions.SectionName));
 
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddHostedService<VerificationConsoleReviewHostedService>();
 
 var app = builder.Build();
 

@@ -61,14 +61,14 @@ public class AuthController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToAction("Index", "Home");
         }
 
-        return View(new LoginViewModel());
+        return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
     [HttpPost]
@@ -97,6 +97,11 @@ public class AuthController : Controller
         {
             ModelState.AddModelError(string.Empty, result.Error.Message);
             return View(model);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+        {
+            return Redirect(model.ReturnUrl);
         }
 
         return RedirectToAction("Index", "Home");

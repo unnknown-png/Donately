@@ -62,4 +62,57 @@
 	  locationDisplay.hidden = false;
 	});
   }
+
+  const documentDropzone = document.querySelector("[data-document-dropzone]");
+  const documentInput = document.querySelector("[data-document-input]");
+  const documentFileName = document.querySelector("[data-document-file-name]");
+
+  if (documentDropzone && documentInput && documentFileName) {
+	const setFileName = () => {
+	  const file = documentInput.files && documentInput.files.length > 0 ? documentInput.files[0] : null;
+	  documentFileName.textContent = file ? file.name : "Файл ще не обрано";
+	  documentDropzone.classList.toggle("document-upload--has-file", Boolean(file));
+	};
+
+	documentDropzone.addEventListener("click", (event) => {
+	  if (event.target === documentInput) {
+	    return;
+	  }
+
+	  documentInput.click();
+	});
+
+	documentInput.addEventListener("change", setFileName);
+
+	documentDropzone.addEventListener("dragenter", (event) => {
+	  event.preventDefault();
+	  documentDropzone.classList.add("is-dragover");
+	});
+
+	documentDropzone.addEventListener("dragover", (event) => {
+	  event.preventDefault();
+	  documentDropzone.classList.add("is-dragover");
+	});
+
+	documentDropzone.addEventListener("dragleave", (event) => {
+	  event.preventDefault();
+	  if (!documentDropzone.contains(event.relatedTarget)) {
+	    documentDropzone.classList.remove("is-dragover");
+	  }
+	});
+
+	documentDropzone.addEventListener("drop", (event) => {
+	  event.preventDefault();
+	  documentDropzone.classList.remove("is-dragover");
+
+	  if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+	    const dataTransfer = new DataTransfer();
+	    dataTransfer.items.add(event.dataTransfer.files[0]);
+	    documentInput.files = dataTransfer.files;
+	    setFileName();
+	  }
+	});
+
+	setFileName();
+  }
 });

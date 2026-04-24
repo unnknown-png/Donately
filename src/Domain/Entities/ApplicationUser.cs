@@ -9,7 +9,7 @@ public class ApplicationUser : IdentityUser<Guid>
 
     public bool IsVerified { get; set; }
 
-    public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.None;
+    public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.NotStarted;
 
     public string? ProfileImagePath { get; set; }
 

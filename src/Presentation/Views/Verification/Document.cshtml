@@ -1,0 +1,69 @@
+@model PhoneVerificationViewModel
+
+@{
+    ViewData["Title"] = "Додати документ";
+}
+
+<section class="auth-page">
+    <article class="placeholder-card auth-card auth-card--compact document-upload-card">
+        <div class="auth-card__header">
+            <h1 class="auth-card__title">Додати документ</h1>
+            <p class="auth-card__subtitle">Завантаж фото паспорта або студентського квитка у форматі PDF, JPG або PNG до 10 МБ.</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.VerificationStatusLabel))
+        {
+            <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
+        }
+
+        @if (ViewData["VerificationError"] is string errorMessage)
+        {
+            <div class="alert alert-danger auth-alert" role="alert">@errorMessage</div>
+        }
+
+        @if (ViewData.ModelState is { IsValid: false })
+        {
+            @Html.ValidationSummary(false, string.Empty, new { @class = "alert alert-danger auth-alert" })
+        }
+
+        @if (Model.DocumentAttached)
+        {
+            <div class="alert alert-success auth-alert" role="alert">
+                Документ уже прикріплено. Можеш повертатись до профілю.
+            </div>
+
+            <a asp-controller="Profile" asp-action="Index" class="btn btn-primary auth-form__submit">Повернутись до профілю</a>
+        }
+        else
+        {
+            <form asp-controller="Verification" asp-action="AttachDocument" method="post" enctype="multipart/form-data" class="auth-form document-upload-form" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="auth-form__group">
+                    <label for="documentFile" class="auth-form__label">Файл документа</label>
+
+                    <div class="document-upload" data-document-dropzone>
+                        <input id="documentFile"
+                               name="document"
+                               type="file"
+                               class="document-upload__input"
+                               accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                               data-document-input />
+
+                        <div class="document-upload__body">
+                            <span class="document-upload__icon" aria-hidden="true">⇪</span>
+                            <strong class="document-upload__title">Перетягни файл сюди або натисни, щоб обрати</strong>
+                            <p class="document-upload__hint">Підтримуються PDF, JPG, JPEG, PNG. Максимальний розмір — 10 МБ.</p>
+                            <span class="document-upload__file-name" data-document-file-name>Файл ще не обрано</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-form__submit">Прикріпити</button>
+                <a asp-controller="Profile" asp-action="Index" class="btn btn-outline-primary auth-form__submit">Повернутись до профілю</a>
+            </form>
+        }
+    </article>
+</section>
+
+
