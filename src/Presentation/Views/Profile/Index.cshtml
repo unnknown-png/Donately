@@ -21,6 +21,11 @@
     }
 
     var hasAvatar = !string.IsNullOrWhiteSpace(Model.ProfileImagePath);
+    var currentStep = Model.CurrentVerificationStep;
+    var step3Centered = currentStep < 3;
+    var step4Centered = currentStep < 4;
+    var isVerificationApproved = string.Equals(Model.VerificationStatusLabel, "Верифіковано", StringComparison.OrdinalIgnoreCase);
+    var isVerificationRejected = string.Equals(Model.VerificationStatusLabel, "Відхилено", StringComparison.OrdinalIgnoreCase);
 }
 
 <section class="app-section">
@@ -187,61 +192,104 @@
             </div>
 
             <div class="profile-verification__steps">
-                <div class="profile-verification__step @(Model.EmailConfirmed ? "profile-verification__step--done" : "profile-verification__step--active")">
-                    <span class="profile-verification__step-index @(Model.EmailConfirmed ? "profile-verification__step-index--done" : string.Empty)">
-                        @(Model.EmailConfirmed ? "✓" : "1")
+                <div class="profile-verification__step @(currentStep > 1 ? "profile-verification__step--done" : currentStep == 1 ? "profile-verification__step--active" : string.Empty)">
+                    <span class="profile-verification__step-index @(currentStep > 1 ? "profile-verification__step-index--done" : string.Empty)">
+                        @(currentStep > 1 ? "✓" : "1")
                     </span>
                     <div class="profile-verification__step-content">
                         <div class="profile-verification__step-header">
                             <p class="profile-verification__step-title">Підтвердження мейлу</p>
 
-                            @if (Model.EmailConfirmed)
+                            @if (currentStep > 1)
                             {
                                 <span class="profile-verification__step-status profile-verification__step-status--success">Підтверджено</span>
                             }
-                            else
+                            else if (currentStep == 1)
                             {
                                 <a asp-controller="Verification" asp-action="Email" class="btn btn-primary btn-sm profile-verification__start-button">Розпочати</a>
                             }
                         </div>
 
-                        <p class="profile-verification__step-text">@(Model.EmailConfirmed ? "Email успішно підтверджено." : "Підтверди email, щоб перейти до наступних етапів верифікації.")</p>
+                        <p class="profile-verification__step-text">@(currentStep > 1 ? "Email успішно підтверджено." : "Підтверди email, щоб перейти до наступних етапів верифікації.")</p>
                     </div>
                 </div>
 
-                <div class="profile-verification__step @(Model.PhoneConfirmed ? "profile-verification__step--done" : "profile-verification__step--active")">
-                    <span class="profile-verification__step-index">2</span>
+                <div class="profile-verification__step @(currentStep > 2 ? "profile-verification__step--done" : currentStep == 2 ? "profile-verification__step--active" : string.Empty)">
+                    <span class="profile-verification__step-index @(currentStep > 2 ? "profile-verification__step-index--done" : string.Empty)">
+                        @(currentStep > 2 ? "✓" : "2")
+                    </span>
                     <div class="profile-verification__step-content">
                         <div class="profile-verification__step-header">
                             <p class="profile-verification__step-title">Підтвердження номеру телефону</p>
 
-                            @if (Model.PhoneConfirmed)
+                            @if (currentStep > 2)
                             {
                                 <span class="profile-verification__step-status profile-verification__step-status--success">Підтверджено</span>
                             }
-                            else
+                            else if (currentStep == 2)
                             {
                                 <a asp-controller="Verification" asp-action="Phone" class="btn btn-primary btn-sm profile-verification__start-button">Розпочати</a>
                             }
                         </div>
 
-                        <p class="profile-verification__step-text">@(Model.PhoneConfirmed ? "Номер телефону підтверджено успішно." : "Підтверди номер телефону через SMS-код, щоб перейти далі.")</p>
+                        @if (currentStep >= 2)
+                        {
+                            <p class="profile-verification__step-text">@(currentStep > 2 ? "Номер телефону підтверджено успішно." : "Підтверди номер телефону через SMS-код, щоб перейти далі.")</p>
+                        }
                     </div>
                 </div>
 
-                <div class="profile-verification__step">
-                    <span class="profile-verification__step-index">3</span>
-                    <div>
-                        <p class="profile-verification__step-title">Додати документ</p>
-                        <p class="profile-verification__step-text">Тут буде контейнер для завантаження документа на перевірку.</p>
+                <div class="profile-verification__step @(currentStep > 3 ? "profile-verification__step--done" : currentStep == 3 ? "profile-verification__step--active" : string.Empty)">
+                    <span class="profile-verification__step-index @(currentStep > 3 ? "profile-verification__step-index--done" : string.Empty)">
+                        @(currentStep > 3 ? "✓" : "3")
+                    </span>
+                    <div class="profile-verification__step-content @(step3Centered ? "profile-verification__step-content--centered" : string.Empty)">
+                        <div class="profile-verification__step-header">
+                            <p class="profile-verification__step-title">Додати документ</p>
+
+                            @if (currentStep > 3)
+                            {
+                                <span class="profile-verification__step-status profile-verification__step-status--success">Підтверджено</span>
+                            }
+                            else if (currentStep == 3)
+                            {
+                                <a asp-controller="Verification" asp-action="Document" class="btn btn-primary btn-sm profile-verification__start-button">Розпочати</a>
+                            }
+                        </div>
+
+                        @if (currentStep == 3)
+                        {
+                            <p class="profile-verification__step-text">Прикріпи фото паспорта або студентського квитка, щоб перейти далі.</p>
+                        }
+                        else if (currentStep > 3)
+                        {
+                            <p class="profile-verification__step-text">Документ успішно прикріплено та відправлено на перевірку.</p>
+                        }
                     </div>
                 </div>
 
-                <div class="profile-verification__step">
-                    <span class="profile-verification__step-index">4</span>
-                    <div>
-                        <p class="profile-verification__step-title">Отримати статус</p>
-                        <p class="profile-verification__step-text">Після надсилання всіх даних ви отримаєте статус очікування верифікації.</p>
+                <div class="profile-verification__step @(currentStep == 4 ? "profile-verification__step--active" : currentStep > 4 ? "profile-verification__step--done" : string.Empty)">
+                    <span class="profile-verification__step-index @(currentStep > 4 ? "profile-verification__step-index--done" : string.Empty)">
+                        @(currentStep > 4 ? "✓" : "4")
+                    </span>
+                    <div class="profile-verification__step-content @(step4Centered ? "profile-verification__step-content--centered" : string.Empty)">
+                        <div class="profile-verification__step-header">
+                            <p class="profile-verification__step-title">Отримати статус</p>
+
+                            @if (currentStep > 4)
+                            {
+                                <span class="profile-verification__step-status @(isVerificationRejected ? "profile-verification__step-status--danger" : "profile-verification__step-status--success")">@Model.VerificationStatusLabel</span>
+                            }
+                        </div>
+
+                        @if (currentStep == 4)
+                        {
+                            <p class="profile-verification__step-text">Вашу заявку зараз перевіряє адміністратор.</p>
+                        }
+                        else if (currentStep > 4)
+                        {
+                            <p class="profile-verification__step-text">@(isVerificationApproved ? "Верифікацію підтверджено. Тепер ти можеш створювати власні збори." : "Верифікацію відхилено. Переглянь вимоги та спробуй ще раз.")</p>
+                        }
                     </div>
                 </div>
             </div>

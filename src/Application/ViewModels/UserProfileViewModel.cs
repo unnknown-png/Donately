@@ -24,6 +24,8 @@ public class UserProfileViewModel
 
     public string VerificationStatusLabel { get; init; } = string.Empty;
 
+    public int CurrentVerificationStep { get; init; }
+
     public DateTime CreatedAt { get; init; }
 }
 

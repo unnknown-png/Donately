@@ -7,8 +7,8 @@
 <section class="auth-page">
     <article class="placeholder-card auth-card auth-card--compact">
         <div class="auth-card__header">
-            <h1 class="auth-card__title">Підтвердження телефону</h1>
-            <p class="auth-card__subtitle">Вкажи номер телефону у міжнародному форматі та підтвердь його через тестовий код.</p>
+            <h1 class="auth-card__title">Підтвердження номера телефону</h1>
+            <p class="auth-card__subtitle">Вкажи власний номер телефону та підтвердь його через тестовий код.</p>
         </div>
 
         @if (!string.IsNullOrWhiteSpace(Model.VerificationStatusLabel))
@@ -16,12 +16,6 @@
             <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
         }
 
-        @if (ViewData["VerificationSuccess"] is string successMessage)
-        {
-            <div class="alert alert-success auth-alert" role="alert">
-                @successMessage
-            </div>
-        }
 
         @if (ViewData["VerificationError"] is string errorMessage)
         {
@@ -50,7 +44,6 @@
                 <div class="auth-form__group">
                     <label for="phoneNumberInput" class="auth-form__label">Номер телефону</label>
                     <input id="phoneNumberInput" name="PhoneNumber" class="form-control auth-form__input" type="tel" value="@Model.PhoneNumber" placeholder="+380XXXXXXXXX" />
-                    <span class="form-text">Використовуй формат E.164, наприклад: +380XXXXXXXXX</span>
                 </div>
 
                 <button type="submit" class="btn btn-primary auth-form__submit">@(!Model.PhoneSent ? "Надіслати тестовий код" : "Надіслати ще раз")</button>

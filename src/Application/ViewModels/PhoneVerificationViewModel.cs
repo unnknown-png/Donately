@@ -12,6 +12,8 @@ public class PhoneVerificationViewModel
 
     public bool PhoneConfirmed { get; set; }
 
+    public bool DocumentAttached { get; set; }
+
     public string VerificationStatusLabel { get; set; } = string.Empty;
 }
 

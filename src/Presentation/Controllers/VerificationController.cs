@@ -74,6 +74,35 @@ public class VerificationController : Controller
         return View(result.Value);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Document(CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var result = await _verificationService.GetDocumentVerificationAsync(userId, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            TempData["VerificationError"] = result.Error.Message;
+            return RedirectToAction("Index", "Profile");
+        }
+
+        if (TempData["VerificationSuccess"] is string successMessage)
+        {
+            ViewData["VerificationSuccess"] = successMessage;
+        }
+
+        if (TempData["VerificationError"] is string errorMessage)
+        {
+            ViewData["VerificationError"] = errorMessage;
+        }
+
+        return View(result.Value);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Email(EmailVerificationViewModel model, CancellationToken cancellationToken)
@@ -136,8 +165,43 @@ public class VerificationController : Controller
         model.PhoneSent = true;
         model.PhoneConfirmed = false;
         ModelState.Clear();
-        ViewData["VerificationSuccess"] = "Тестовий код підготовлено. Для симуляції введи будь-який код нижче.";
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AttachDocument(IFormFile? document, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (document is null || document.Length == 0)
+        {
+            ModelState.AddModelError(string.Empty, "Оберіть файл для завантаження.");
+            return await RenderDocumentViewAsync(userId, cancellationToken);
+        }
+
+        await using var memoryStream = new MemoryStream();
+        await document.CopyToAsync(memoryStream, cancellationToken);
+
+        var result = await _verificationService.AttachDocumentAsync(
+            new AttachDocumentVerificationRequest(
+                userId,
+                document.FileName,
+                document.ContentType,
+                memoryStream.ToArray()),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            ViewData["VerificationError"] = result.Error.Message;
+            return await RenderDocumentViewAsync(userId, cancellationToken);
+        }
+
+        TempData["ProfileSuccess"] = "Документ успішно прикріплено.";
+        return RedirectToAction("Index", "Profile");
     }
 
     [HttpPost]
@@ -247,6 +311,19 @@ public class VerificationController : Controller
             model.PhoneConfirmed = currentResult.Value.PhoneConfirmed;
             model.VerificationStatusLabel = currentResult.Value.VerificationStatusLabel;
         }
+    }
+
+    private async Task<IActionResult> RenderDocumentViewAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var currentResult = await _verificationService.GetDocumentVerificationAsync(userId, cancellationToken);
+
+        if (currentResult.IsFailure)
+        {
+            TempData["VerificationError"] = currentResult.Error.Message;
+            return RedirectToAction("Index", "Profile");
+        }
+
+        return View(nameof(Document), currentResult.Value);
     }
 }
 

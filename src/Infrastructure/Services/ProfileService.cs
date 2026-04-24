@@ -45,6 +45,7 @@ public class ProfileService : IProfileService
         var emailConfirmed = verificationRequest?.EmailConfirmedAt.HasValue == true;
         var phoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true;
         var verificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest, emailConfirmed);
+        var currentVerificationStep = ResolveCurrentVerificationStep(user.VerificationStatus, emailConfirmed, phoneConfirmed);
 
         return new UserProfileViewModel
         {
@@ -59,6 +60,7 @@ public class ProfileService : IProfileService
             DateOfBirth = user.DateOfBirth,
             EmailConfirmed = emailConfirmed,
             VerificationStatusLabel = verificationStatusLabel,
+            CurrentVerificationStep = currentVerificationStep,
             CreatedAt = user.CreatedAt
         };
     }
@@ -296,7 +298,10 @@ public class ProfileService : IProfileService
             {
                 return verificationRequest.Status switch
                 {
-                    VerificationRequestStatus.Approved => "Підтверджено",
+                    VerificationRequestStatus.NotStarted => "Не розпочато",
+                    VerificationRequestStatus.InProgress => "В процесі",
+                    VerificationRequestStatus.InReview => "На перевірці",
+                    VerificationRequestStatus.Approved => "Верифіковано",
                     VerificationRequestStatus.Rejected => "Відхилено",
                     VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
                     _ => "В процесі"
@@ -308,7 +313,7 @@ public class ProfileService : IProfileService
                 VerificationRequestStatus.NotStarted => "Не розпочато",
                 VerificationRequestStatus.InProgress => "В процесі",
                 VerificationRequestStatus.InReview => "На перевірці",
-                VerificationRequestStatus.Approved => "Підтверджено",
+                VerificationRequestStatus.Approved => "Верифіковано",
                 VerificationRequestStatus.Rejected => "Відхилено",
                 VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
                 _ => "Не розпочато"
@@ -320,10 +325,35 @@ public class ProfileService : IProfileService
             VerificationStatus.NotStarted => "Не розпочато",
             VerificationStatus.InProgress => "В процесі",
             VerificationStatus.InReview => "На перевірці",
-            VerificationStatus.Approved => "Підтверджено",
+            VerificationStatus.Approved => "Верифіковано",
             VerificationStatus.Rejected => "Відхилено",
             VerificationStatus.NeedsRevision => "Потребує виправлень",
             _ => "Не розпочато"
+        };
+    }
+
+    private static int ResolveCurrentVerificationStep(
+        VerificationStatus userStatus,
+        bool emailConfirmed,
+        bool phoneConfirmed)
+    {
+        if (!emailConfirmed)
+        {
+            return 1;
+        }
+
+        if (!phoneConfirmed)
+        {
+            return 2;
+        }
+
+        return userStatus switch
+        {
+            VerificationStatus.InReview => 4,
+            VerificationStatus.Approved => 5,
+            VerificationStatus.Rejected => 5,
+            VerificationStatus.NeedsRevision => 4,
+            _ => 3
         };
     }
 }

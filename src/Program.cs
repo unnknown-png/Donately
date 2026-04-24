@@ -58,6 +58,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddHostedService<VerificationConsoleReviewHostedService>();
 
 var app = builder.Build();
 

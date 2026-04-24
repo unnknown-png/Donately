@@ -12,23 +12,29 @@ namespace Donately.Infrastructure.Services;
 
 public sealed class VerificationService : IVerificationService
 {
+    private static readonly HashSet<string> AllowedDocumentExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+    private static readonly HashSet<string> AllowedDocumentContentTypes = ["application/pdf", "image/jpeg", "image/png"];
+    private const long MaxDocumentSizeInBytes = 10 * 1024 * 1024;
     private static readonly TimeSpan VerificationLinkLifetime = TimeSpan.FromHours(24);
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly IEmailSender _emailSender;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
     public VerificationService(
         UserManager<ApplicationUser> userManager,
         ApplicationDbContext dbContext,
         IEmailSender emailSender,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _emailSender = emailSender;
         _httpContextAccessor = httpContextAccessor;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     public async Task<Result<EmailVerificationViewModel>> GetEmailVerificationAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -70,6 +76,27 @@ public sealed class VerificationService : IVerificationService
             PhoneNumber = verificationRequest?.PhoneNumber ?? user.PhoneNumber ?? string.Empty,
             PhoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true,
             PhoneSent = false,
+            VerificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest)
+        };
+    }
+
+    public async Task<Result<PhoneVerificationViewModel>> GetDocumentVerificationAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .AsNoTracking()
+            .Include(x => x.Attachment)
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        return new PhoneVerificationViewModel
+        {
+            DocumentAttached = verificationRequest?.AttachmentId.HasValue == true,
             VerificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest)
         };
     }
@@ -340,6 +367,158 @@ public sealed class VerificationService : IVerificationService
         return Success.Value;
     }
 
+    public async Task<Result> AttachDocumentAsync(AttachDocumentVerificationRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .Include(x => x.Attachment)
+            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
+        if (verificationRequest is null || !verificationRequest.EmailConfirmedAt.HasValue || !verificationRequest.PhoneNumberConfirmedAt.HasValue)
+        {
+            return new Error("Verification.PreviousStepsRequired", "Спочатку завершіть підтвердження email і телефону");
+        }
+
+        if (verificationRequest.Status is VerificationRequestStatus.Approved)
+        {
+            return new Error("Verification.AlreadyApproved", "Ваша верифікація вже підтверджена");
+        }
+
+        if (verificationRequest.Status is VerificationRequestStatus.Rejected)
+        {
+            return new Error("Verification.RequestRejected", "Запит на верифікацію вже відхилено");
+        }
+
+        var normalizedFileName = request.FileName.Trim();
+        var fileExtension = Path.GetExtension(normalizedFileName).ToLowerInvariant();
+
+        if (request.Content.Length == 0)
+        {
+            return new Error("Verification.DocumentEmpty", "Оберіть файл документа");
+        }
+
+        if (request.Content.Length > MaxDocumentSizeInBytes)
+        {
+            return new Error("Verification.DocumentTooLarge", "Файл має бути не більше 10 МБ");
+        }
+
+        if (!AllowedDocumentExtensions.Contains(fileExtension) || !AllowedDocumentContentTypes.Contains(request.ContentType))
+        {
+            return new Error("Verification.DocumentInvalidType", "Дозволені лише PDF, JPG, JPEG або PNG");
+        }
+
+        var webRootPath = _webHostEnvironment.WebRootPath;
+        if (string.IsNullOrWhiteSpace(webRootPath))
+        {
+            return new Error("Verification.StorageUnavailable", "Сховище файлів недоступне");
+        }
+
+        var documentsFolder = Path.Combine(webRootPath, "uploads", "verification-documents");
+        Directory.CreateDirectory(documentsFolder);
+
+        var newFileName = $"verification_{request.UserId:N}_{Guid.NewGuid():N}{fileExtension}";
+        var newFilePath = Path.Combine(documentsFolder, newFileName);
+
+        await File.WriteAllBytesAsync(newFilePath, request.Content, cancellationToken);
+
+        var previousAttachmentUrl = verificationRequest.Attachment?.Url;
+
+        if (verificationRequest.Attachment is null)
+        {
+            verificationRequest.Attachment = new Attachment
+            {
+                Id = Guid.NewGuid(),
+                OwnerType = "VerificationRequest",
+                OwnerId = verificationRequest.Id,
+                Url = $"/uploads/verification-documents/{newFileName}",
+                ContentType = request.ContentType,
+                Purpose = "IdentityDocument",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            verificationRequest.AttachmentId = verificationRequest.Attachment.Id;
+            _dbContext.Attachments.Add(verificationRequest.Attachment);
+        }
+        else
+        {
+            verificationRequest.Attachment.Url = $"/uploads/verification-documents/{newFileName}";
+            verificationRequest.Attachment.ContentType = request.ContentType;
+            verificationRequest.Attachment.Purpose = "IdentityDocument";
+            verificationRequest.Attachment.CreatedAt = DateTime.UtcNow;
+        }
+
+        verificationRequest.Status = VerificationRequestStatus.InReview;
+        user.VerificationStatus = VerificationStatus.InReview;
+        user.IsVerified = false;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var error = updateResult.Errors.FirstOrDefault();
+            return new Error(
+                $"Verification.{error?.Code ?? "DocumentAttachFailed"}",
+                error?.Description ?? "Не вдалося прикріпити документ");
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        DeletePreviousDocumentIfNeeded(webRootPath, previousAttachmentUrl, verificationRequest.Attachment.Url);
+
+        return Success.Value;
+    }
+
+    public async Task<Result> ReviewVerificationAsync(ReviewVerificationRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString());
+
+        if (user is null)
+        {
+            return new Error("Verification.UserNotFound", "Користувача не знайдено");
+        }
+
+        var verificationRequest = await _dbContext.VerificationRequests
+            .SingleOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
+        if (verificationRequest is null)
+        {
+            return new Error("Verification.RequestNotFound", "Запит на верифікацію не знайдено");
+        }
+
+        if (verificationRequest.Status is not VerificationRequestStatus.InReview)
+        {
+            return new Error("Verification.NotInReview", "Заявка ще не очікує на перевірку");
+        }
+
+        verificationRequest.Status = request.Approved
+            ? VerificationRequestStatus.Approved
+            : VerificationRequestStatus.Rejected;
+        verificationRequest.ReviewedAt = DateTime.UtcNow;
+        verificationRequest.ReviewedById = null;
+
+        user.VerificationStatus = request.Approved
+            ? VerificationStatus.Approved
+            : VerificationStatus.Rejected;
+        user.IsVerified = request.Approved;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var error = updateResult.Errors.FirstOrDefault();
+            return new Error(
+                $"Verification.{error?.Code ?? "ReviewFailed"}",
+                error?.Description ?? "Не вдалося зберегти рішення про верифікацію");
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Success.Value;
+    }
+
     private static string ResolveVerificationStatusLabel(
         VerificationStatus userStatus,
         VerificationRequest? verificationRequest)
@@ -350,7 +529,10 @@ public sealed class VerificationService : IVerificationService
             {
                 return verificationRequest.Status switch
                 {
-                    VerificationRequestStatus.Approved => "Підтверджено",
+                    VerificationRequestStatus.NotStarted => "Не розпочато",
+                    VerificationRequestStatus.InProgress => "В процесі",
+                    VerificationRequestStatus.InReview => "На перевірці",
+                    VerificationRequestStatus.Approved => "Верифіковано",
                     VerificationRequestStatus.Rejected => "Відхилено",
                     VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
                     _ => "В процесі"
@@ -362,7 +544,7 @@ public sealed class VerificationService : IVerificationService
                 VerificationRequestStatus.NotStarted => "Не розпочато",
                 VerificationRequestStatus.InProgress => "В процесі",
                 VerificationRequestStatus.InReview => "На перевірці",
-                VerificationRequestStatus.Approved => "Підтверджено",
+                VerificationRequestStatus.Approved => "Верифіковано",
                 VerificationRequestStatus.Rejected => "Відхилено",
                 VerificationRequestStatus.NeedsRevision => "Потребує виправлень",
                 _ => "Не розпочато"
@@ -374,11 +556,29 @@ public sealed class VerificationService : IVerificationService
             VerificationStatus.NotStarted => "Не розпочато",
             VerificationStatus.InProgress => "В процесі",
             VerificationStatus.InReview => "На перевірці",
-            VerificationStatus.Approved => "Підтверджено",
+            VerificationStatus.Approved => "Верифіковано",
             VerificationStatus.Rejected => "Відхилено",
             VerificationStatus.NeedsRevision => "Потребує виправлень",
             _ => "Не розпочато"
         };
+    }
+
+    private static void DeletePreviousDocumentIfNeeded(string webRootPath, string? previousRelativePath, string currentRelativePath)
+    {
+        if (string.IsNullOrWhiteSpace(previousRelativePath) ||
+            string.Equals(previousRelativePath, currentRelativePath, StringComparison.OrdinalIgnoreCase) ||
+            !previousRelativePath.StartsWith("/uploads/verification-documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var normalized = previousRelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        var previousAbsolutePath = Path.Combine(webRootPath, normalized);
+
+        if (File.Exists(previousAbsolutePath))
+        {
+            File.Delete(previousAbsolutePath);
+        }
     }
 
     private static string GenerateToken()
