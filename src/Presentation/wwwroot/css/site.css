@@ -810,6 +810,207 @@ main {
   flex-wrap: wrap;
 }
 
+.fundraiser-card__media-image {
+  object-fit: cover;
+}
+
+.fundraiser-card__status-stack {
+  display: inline-flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.fundraiser-card__status--urgent {
+  background: #fdecec;
+  color: #b42318;
+}
+
+.fundraiser-card__status--new {
+  background: #edf7ee;
+  color: #1b7f3a;
+}
+
+.fundraiser-card__title-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.fundraiser-author {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(13, 110, 253, 0.25);
+  background: #f8fbff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.fundraiser-author__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fundraiser-author__fallback {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #17324d;
+}
+
+.fundraiser-empty {
+  padding: 1.4rem;
+}
+
+.fundraiser-empty__title {
+  margin: 0;
+  color: #17324d;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.fundraiser-empty__subtitle {
+  margin: 0.45rem 0 0;
+  color: #5c7185;
+}
+
+.fundraiser-warning-wrap {
+  min-height: calc(100vh - 250px);
+  display: grid;
+  place-items: center;
+}
+
+.fundraiser-warning {
+  width: min(760px, 100%);
+  padding: 1.7rem;
+  display: grid;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.fundraiser-warning__kicker {
+  margin: 0;
+  color: #0a58ca;
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fundraiser-warning__title {
+  margin: 0;
+  color: #17324d;
+  font-size: 1.9rem;
+  font-weight: 900;
+}
+
+.fundraiser-warning__text {
+  margin: 0;
+  color: #5c7185;
+  line-height: 1.6;
+}
+
+.fundraiser-warning__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fundraiser-create {
+  padding: 1.45rem;
+}
+
+.fundraiser-create__form,
+.fundraiser-create__grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.fundraiser-create__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fundraiser-create__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fundraiser-create__field--full {
+  grid-column: 1 / -1;
+}
+
+.fundraiser-create__field--checkbox {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.fundraiser-create__label,
+.fundraiser-create__checkbox-label {
+  color: #17324d;
+  font-weight: 800;
+}
+
+.fundraiser-create__input,
+.fundraiser-create__textarea {
+  border-radius: 0.8rem;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+}
+
+.fundraiser-create__actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.fundraiser-details__card {
+  padding: 1.3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.fundraiser-details__cover {
+  width: 100%;
+  max-height: 340px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.fundraiser-details__meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fundraiser-details__author {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.fundraiser-details__description {
+  white-space: pre-line;
+  color: #17324d;
+  line-height: 1.6;
+}
+
+.fundraiser-details__subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #17324d;
+  font-weight: 900;
+}
+
+.fundraiser-details__attachment-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+}
+
 .home-donations-grid,
 .achievements-grid {
   display: grid;
@@ -912,6 +1113,10 @@ main {
   .fundraisers-sidebar,
   .fundraiser-card {
     padding: 1rem;
+  }
+
+  .fundraiser-create__grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,3 +1,4 @@
+@model FundraisersListViewModel
 @{
     ViewData["Title"] = "Актуальні збори";
 }
@@ -5,51 +6,42 @@
 <section class="app-section">
     <div class="section-header">
         <h1 class="section-title">@ViewData["Title"]</h1>
-        <p class="section-subtitle">Поки що це візуальний макет: ліворуч блок фільтрів, праворуч — сітка зборів у 3 колонки.</p>
+        <p class="section-subtitle">Список зборів, які зараз потребують підтримки.</p>
     </div>
+
+    @if (TempData["FundraiserSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["FundraiserError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
 
     <div class="fundraisers-layout">
         <aside class="placeholder-card fundraisers-sidebar" aria-label="Фільтри зборів">
             <div class="fundraisers-sidebar__header">
                 <p class="fundraisers-sidebar__kicker">Фільтрація</p>
-                <h2 class="fundraisers-sidebar__title">Знайти потрібний збір</h2>
-                <p class="fundraisers-sidebar__subtitle">Нижче — лише візуальні елементи, які згодом стануть активними фільтрами.</p>
+                <h2 class="fundraisers-sidebar__title">Категорії</h2>
+                <p class="fundraisers-sidebar__subtitle">Наразі доступні три основні категорії зборів.</p>
             </div>
 
             <div class="fundraisers-filter-group">
                 <span class="fundraisers-filter-group__label">Категорія</span>
                 <div class="fundraisers-filter-chips">
-                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--active">Усі</button>
-                    <button type="button" class="fundraisers-filter-chip">Медицина</button>
-                    <button type="button" class="fundraisers-filter-chip">Допомога ЗСУ</button>
-                    <button type="button" class="fundraisers-filter-chip">Тварини</button>
+                    <span class="fundraisers-filter-chip fundraisers-filter-chip--active">Медицина</span>
+                    <span class="fundraisers-filter-chip">Допомога ЗСУ</span>
+                    <span class="fundraisers-filter-chip">Підтримка</span>
                 </div>
             </div>
 
             <div class="fundraisers-filter-group">
-                <span class="fundraisers-filter-group__label">Статус</span>
+                <span class="fundraisers-filter-group__label">Статуси</span>
                 <div class="fundraisers-filter-chips">
-                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Активні</button>
-                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Термінові</button>
-                    <button type="button" class="fundraisers-filter-chip fundraisers-filter-chip--soft">Нові</button>
+                    <span class="fundraisers-filter-chip fundraisers-filter-chip--soft">Терміново</span>
+                    <span class="fundraisers-filter-chip fundraisers-filter-chip--soft">Новий (24 год)</span>
                 </div>
-            </div>
-
-            <div class="fundraisers-filter-group">
-                <span class="fundraisers-filter-group__label">Мета збору</span>
-                <div class="fundraisers-filter-range">
-                    <div class="fundraisers-filter-range__track">
-                        <span class="fundraisers-filter-range__fill"></span>
-                    </div>
-                    <div class="fundraisers-filter-range__labels">
-                        <span>0 ₴</span>
-                        <span>100 000 ₴</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="fundraisers-sidebar__note">
-                Тут згодом можна буде додати пошук, сортування та інші параметри.
             </div>
         </aside>
 
@@ -59,143 +51,87 @@
                     <p class="fundraisers-toolbar__kicker">Каталог</p>
                     <h2 class="fundraisers-toolbar__title">Підтримайте збір, який вам близький</h2>
                 </div>
-
-                <p class="fundraisers-toolbar__hint">Показано 6 прикладів карток</p>
+                <a class="btn btn-primary" asp-controller="Fundraisers" asp-action="Create">Створити власний збір</a>
             </div>
 
-            <div class="fundraisers-grid">
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Медицина</span>
-                            <span class="fundraiser-card__status">Активний</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Збір для лікування</h3>
-                        <p class="fundraiser-card__description">Візуальний приклад картки збору з коротким описом і базовою структурою.</p>
-
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 64%"></span>
-                            </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>64% зібрано</span>
-                                <span>32 000 ₴ / 50 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
+            @if (Model.Items.Count == 0)
+            {
+                <article class="placeholder-card fundraiser-empty">
+                    <h3 class="fundraiser-empty__title">Поки що зборів немає</h3>
+                    <p class="fundraiser-empty__subtitle">Станьте першим, хто розмістить власний збір.</p>
                 </article>
+            }
+            else
+            {
+                <div class="fundraisers-grid">
+                    @foreach (var item in Model.Items)
+                    {
+                        var progressPercent = item.GoalAmount <= 0
+                            ? 0m
+                            : Math.Min(100m, Math.Round(item.CurrentAmount / item.GoalAmount * 100m, 0));
 
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Допомога ЗСУ</span>
-                            <span class="fundraiser-card__status">Терміново</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Збір на необхідне спорядження</h3>
-                        <p class="fundraiser-card__description">Приклад картки, який показує, як будуть виглядати картки у списку активних зборів.</p>
+                        var authorInitial = string.IsNullOrWhiteSpace(item.AuthorNickName)
+                            ? "U"
+                            : item.AuthorNickName[..1].ToUpperInvariant();
 
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 41%"></span>
-                            </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>41% зібрано</span>
-                                <span>41 000 ₴ / 100 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
+                        <article class="placeholder-card fundraiser-card">
+                            @if (!string.IsNullOrWhiteSpace(item.CoverImageUrl))
+                            {
+                                <img class="fundraiser-card__media fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" />
+                            }
+                            else
+                            {
+                                <div class="fundraiser-card__media"></div>
+                            }
 
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Тварини</span>
-                            <span class="fundraiser-card__status">Новий</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Збір для притулку</h3>
-                        <p class="fundraiser-card__description">Ще один візуальний приклад картки, щоб одразу було видно сітку на 3 елементи.</p>
+                            <div class="fundraiser-card__body">
+                                <div class="fundraiser-card__meta">
+                                    <span class="fundraiser-card__tag">@item.CategoryLabel</span>
+                                    <div class="fundraiser-card__status-stack">
+                                        @if (item.IsUrgent)
+                                        {
+                                            <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
+                                        }
 
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 28%"></span>
-                            </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>28% зібрано</span>
-                                <span>14 000 ₴ / 50 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
+                                        @if (item.IsNew)
+                                        {
+                                            <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
+                                        }
+                                    </div>
+                                </div>
 
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Медицина</span>
-                            <span class="fundraiser-card__status">Активний</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Підтримка реабілітації</h3>
-                        <p class="fundraiser-card__description">Макет картки для майбутніх реальних зборів з аналогічною структурою.</p>
+                                <div class="fundraiser-card__title-row">
+                                    <span class="fundraiser-author" title="@item.AuthorNickName (@item.AuthorFullName)">
+                                        @if (!string.IsNullOrWhiteSpace(item.AuthorProfileImagePath))
+                                        {
+                                            <img class="fundraiser-author__avatar" src="@item.AuthorProfileImagePath" alt="Аватар автора" />
+                                        }
+                                        else
+                                        {
+                                            <span class="fundraiser-author__fallback">@authorInitial</span>
+                                        }
+                                    </span>
+                                    <h3 class="fundraiser-card__title">@item.Title</h3>
+                                </div>
 
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 77%"></span>
-                            </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>77% зібрано</span>
-                                <span>77 000 ₴ / 100 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
+                                <p class="fundraiser-card__description">@item.ShortDescription</p>
 
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Діти</span>
-                            <span class="fundraiser-card__status">Активний</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Збір для навчання</h3>
-                        <p class="fundraiser-card__description">Тут буде ще одна картка у загальній сітці, щоб показати рівний ритм сторінки.</p>
+                                <div class="fundraiser-card__progress-block">
+                                    <div class="fundraiser-card__progress-track">
+                                        <span class="fundraiser-card__progress-fill" style="width: @progressPercent%"></span>
+                                    </div>
+                                    <div class="fundraiser-card__progress-meta">
+                                        <span>@progressPercent% зібрано</span>
+                                        <span>@item.CurrentAmount.ToString("N0") @item.Currency / @item.GoalAmount.ToString("N0") @item.Currency</span>
+                                    </div>
+                                </div>
 
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 52%"></span>
+                                <a class="btn btn-outline-primary" asp-controller="Fundraisers" asp-action="Details" asp-route-slug="@item.Slug">Переглянути збір</a>
                             </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>52% зібрано</span>
-                                <span>26 000 ₴ / 50 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="placeholder-card fundraiser-card">
-                    <div class="fundraiser-card__media"></div>
-                    <div class="fundraiser-card__body">
-                        <div class="fundraiser-card__meta">
-                            <span class="fundraiser-card__tag">Підтримка</span>
-                            <span class="fundraiser-card__status">Новий</span>
-                        </div>
-                        <h3 class="fundraiser-card__title">Збір на важливі потреби</h3>
-                        <p class="fundraiser-card__description">Заглушка картки для майбутнього наповнення реальними даними з бекенду.</p>
-
-                        <div class="fundraiser-card__progress-block">
-                            <div class="fundraiser-card__progress-track">
-                                <span class="fundraiser-card__progress-fill" style="width: 33%"></span>
-                            </div>
-                            <div class="fundraiser-card__progress-meta">
-                                <span>33% зібрано</span>
-                                <span>33 000 ₴ / 100 000 ₴</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-            </div>
+                        </article>
+                    }
+                </div>
+            }
         </div>
     </div>
 </section>

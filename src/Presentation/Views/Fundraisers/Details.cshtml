@@ -1,0 +1,87 @@
+@model FundraiserDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    var progressPercent = Model.GoalAmount <= 0
+        ? 0m
+        : Math.Min(100m, Math.Round(Model.CurrentAmount / Model.GoalAmount * 100m, 0));
+    var authorInitial = string.IsNullOrWhiteSpace(Model.AuthorNickName)
+        ? "U"
+        : Model.AuthorNickName[..1].ToUpperInvariant();
+}
+
+<section class="app-section fundraiser-details">
+    <div class="section-header">
+        <h1 class="section-title">@Model.Title</h1>
+        <p class="section-subtitle">@Model.ShortDescription</p>
+    </div>
+
+    <article class="placeholder-card fundraiser-details__card">
+        @if (!string.IsNullOrWhiteSpace(Model.CoverImageUrl))
+        {
+            <img class="fundraiser-details__cover" src="@Model.CoverImageUrl" alt="Обкладинка збору @Model.Title" />
+        }
+
+        <div class="fundraiser-details__meta">
+            <span class="fundraiser-card__tag">@Model.CategoryLabel</span>
+            @if (Model.IsUrgent)
+            {
+                <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
+            }
+            @if (Model.IsNew)
+            {
+                <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
+            }
+        </div>
+
+        <div class="fundraiser-details__author">
+            <span class="fundraiser-author" title="@Model.AuthorNickName (@Model.AuthorFullName)">
+                @if (!string.IsNullOrWhiteSpace(Model.AuthorProfileImagePath))
+                {
+                    <img class="fundraiser-author__avatar" src="@Model.AuthorProfileImagePath" alt="Аватар автора" />
+                }
+                else
+                {
+                    <span class="fundraiser-author__fallback">@authorInitial</span>
+                }
+            </span>
+            <div>
+                <strong>@Model.AuthorNickName</strong>
+                <div class="text-muted">@Model.AuthorFullName</div>
+            </div>
+        </div>
+
+        <div class="fundraiser-card__progress-block">
+            <div class="fundraiser-card__progress-track">
+                <span class="fundraiser-card__progress-fill" style="width: @progressPercent%"></span>
+            </div>
+            <div class="fundraiser-card__progress-meta">
+                <span>@progressPercent% зібрано</span>
+                <span>@Model.CurrentAmount.ToString("N0") @Model.Currency / @Model.GoalAmount.ToString("N0") @Model.Currency</span>
+            </div>
+        </div>
+
+        <div class="fundraiser-details__description">
+            @Model.Description
+        </div>
+
+        <div class="fundraiser-details__attachments">
+            <h2 class="fundraiser-details__subtitle">Прикріплені файли</h2>
+            @if (Model.Attachments.Count == 0)
+            {
+                <p class="text-muted">До цього збору ще не додано файлів.</p>
+            }
+            else
+            {
+                <ul class="fundraiser-details__attachment-list">
+                    @foreach (var attachment in Model.Attachments)
+                    {
+                        <li>
+                            <a href="@attachment.Url" target="_blank" rel="noopener noreferrer">@attachment.FileName</a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </article>
+</section>
+

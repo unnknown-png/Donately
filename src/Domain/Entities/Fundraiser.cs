@@ -12,11 +12,15 @@ public class Fundraiser
 
     public string? Description { get; set; }
 
+    public FundraiserCategory Category { get; set; } = FundraiserCategory.Support;
+
     public decimal GoalAmount { get; set; }
 
     public decimal CurrentAmount { get; set; }
 
     public string Currency { get; set; } = "UAH";
+
+    public bool IsUrgent { get; set; }
 
     public Guid CreatedById { get; set; }
 

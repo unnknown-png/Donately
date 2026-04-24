@@ -1,0 +1,26 @@
+@model FundraiserCreateAccessViewModel
+@{
+    ViewData["Title"] = "Створення збору";
+}
+
+<section class="app-section fundraiser-warning-wrap">
+    <article class="placeholder-card fundraiser-warning">
+        <p class="fundraiser-warning__kicker">Donately</p>
+        <h1 class="fundraiser-warning__title">@Model.Title</h1>
+        <p class="fundraiser-warning__text">@Model.Message</p>
+
+        <div class="fundraiser-warning__actions">
+            @if (Model.IsAuthenticated)
+            {
+                <a class="btn btn-primary" asp-controller="Profile" asp-action="Index">Перейти в профіль</a>
+                <a class="btn btn-outline-primary" asp-controller="Verification" asp-action="Email">Почати верифікацію</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@Url.Action("Create", "Fundraisers")">Увійти</a>
+                <a class="btn btn-outline-primary" asp-controller="Auth" asp-action="Register">Створити акаунт</a>
+            }
+        </div>
+    </article>
+</section>
+
