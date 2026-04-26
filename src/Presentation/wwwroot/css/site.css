@@ -657,6 +657,18 @@ main {
   font-size: 0.95rem;
   line-height: 1;
   box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.05);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fundraisers-filter-chip__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .fundraisers-filter-chip--active {
@@ -669,9 +681,20 @@ main {
   background: #f8fbff;
 }
 
+.fundraisers-filter-chip--soft.fundraisers-filter-chip--active {
+  background: #0d6efd;
+  color: #ffffff;
+  border-color: #0d6efd;
+}
+
 .fundraisers-filter-range {
   display: grid;
   gap: 0.55rem;
+}
+
+.fundraiser-filter-goal-input {
+  border-radius: 0.8rem;
+  border: 1px solid rgba(13, 110, 253, 0.2);
 }
 
 .fundraisers-filter-range__track {
@@ -700,9 +723,35 @@ main {
   gap: 0.75rem;
 }
 
+.fundraisers-filter-range__hint {
+  margin: 0;
+  color: #5c7185;
+  font-size: 0.85rem;
+}
+
 .fundraisers-toolbar {
   margin-bottom: 1rem;
   flex-wrap: wrap;
+}
+
+.fundraisers-filter-apply {
+  width: 100%;
+  border-radius: 0.8rem;
+  font-weight: 800;
+}
+
+.fundraisers-filter-reset {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5c7185;
+  text-decoration: none;
+}
+
+.fundraisers-filter-reset:hover {
+  color: #0a58ca;
 }
 
 .fundraisers-content {

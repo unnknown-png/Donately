@@ -17,6 +17,9 @@ public sealed class FundraiserService : IFundraiserService
 
     private const int MaxCoverSizeInBytes = 5 * 1024 * 1024;
     private const int MaxAttachmentSizeInBytes = 10 * 1024 * 1024;
+    private const int MaxGoalForUah = 10000;
+    private const int MaxGoalForUsdEur = 5000;
+    private const string AnyCurrency = "ALL";
     private const string FundraiserOwnerType = "Fundraiser";
     private const string CoverPurpose = "CoverImage";
     private const string AttachmentPurpose = "Attachment";
@@ -213,12 +216,60 @@ public sealed class FundraiserService : IFundraiserService
         };
     }
 
-    public async Task<Result<FundraisersListViewModel>> GetActualFundraisersAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<FundraisersListViewModel>> GetActualFundraisersAsync(
+        FundraisersFilterRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var fundraisers = await _dbContext.Fundraisers
+        var normalizedFilterResult = NormalizeFilter(request);
+        if (normalizedFilterResult.IsFailure)
+        {
+            return normalizedFilterResult.Error;
+        }
+
+        var normalizedFilter = normalizedFilterResult.Value;
+        var utcNow = DateTime.UtcNow;
+        var newSince = utcNow - TimeSpan.FromHours(24);
+
+        var query = _dbContext.Fundraisers
             .AsNoTracking()
             .Include(x => x.CreatedBy)
-            .Where(x => x.IsActive)
+            .Where(x => x.IsActive);
+
+        if (normalizedFilter.Categories.Count > 0)
+        {
+            query = query.Where(x => normalizedFilter.Categories.Contains(x.Category));
+        }
+
+        if (normalizedFilter.Statuses.Count > 0)
+        {
+            var includeUrgent = normalizedFilter.Statuses.Contains("urgent");
+            var includeNew = normalizedFilter.Statuses.Contains("new");
+
+            if (includeUrgent && includeNew)
+            {
+                query = query.Where(x => x.IsUrgent || x.CreatedAt >= newSince);
+            }
+            else if (includeUrgent)
+            {
+                query = query.Where(x => x.IsUrgent);
+            }
+            else if (includeNew)
+            {
+                query = query.Where(x => x.CreatedAt >= newSince);
+            }
+        }
+
+        if (!string.Equals(normalizedFilter.Currency, AnyCurrency, StringComparison.Ordinal))
+        {
+            query = query.Where(x => x.Currency == normalizedFilter.Currency);
+        }
+
+        if (normalizedFilter.GoalAmountMax < normalizedFilter.GoalAmountUpperBound)
+        {
+            query = query.Where(x => x.GoalAmount <= normalizedFilter.GoalAmountMax);
+        }
+
+        var fundraisers = await query
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -234,8 +285,6 @@ public sealed class FundraiserService : IFundraiserService
                 .AsNoTracking()
                 .Where(x => coverIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, x => x.Url, cancellationToken);
-
-        var utcNow = DateTime.UtcNow;
 
         var cards = fundraisers.Select(fundraiser => new FundraiserCardViewModel
         {
@@ -259,7 +308,18 @@ public sealed class FundraiserService : IFundraiserService
             AuthorProfileImagePath = fundraiser.CreatedBy.ProfileImagePath
         }).ToList();
 
-        return new FundraisersListViewModel { Items = cards };
+        return new FundraisersListViewModel
+        {
+            Items = cards,
+            Filters = new FundraisersFiltersStateViewModel
+            {
+                SelectedCategories = normalizedFilter.Categories,
+                SelectedStatuses = normalizedFilter.Statuses,
+                SelectedCurrency = normalizedFilter.Currency,
+                GoalAmountMax = normalizedFilter.GoalAmountMax,
+                GoalAmountUpperBound = normalizedFilter.GoalAmountUpperBound
+            }
+        };
     }
 
     public async Task<Result<FundraiserDetailsViewModel>> GetDetailsAsync(string slug, CancellationToken cancellationToken = default)
@@ -335,6 +395,55 @@ public sealed class FundraiserService : IFundraiserService
             FundraiserCategory.MilitarySupport => "Допомога ЗСУ",
             _ => "Підтримка"
         };
+    }
+
+    private static Result<NormalizedFundraiserFilter> NormalizeFilter(FundraisersFilterRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var selectedCategories = (request.Categories ?? Array.Empty<FundraiserCategory>())
+            .Distinct()
+            .ToArray();
+
+        var selectedStatuses = (request.Statuses ?? Array.Empty<string>())
+            .Select(x => x.Trim().ToLowerInvariant())
+            .Where(x => x is "urgent" or "new")
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        var selectedCurrency = string.IsNullOrWhiteSpace(request.Currency)
+            ? AnyCurrency
+            : request.Currency.Trim().ToUpperInvariant();
+
+        if (selectedCurrency is not (AnyCurrency or "UAH" or "USD" or "EUR"))
+        {
+            return new Error("Fundraiser.InvalidCurrencyFilter", "Некоректна валюта у фільтрі");
+        }
+
+        var goalUpperBound = GetGoalUpperBoundByCurrency(selectedCurrency);
+        var selectedGoal = request.GoalAmountMax;
+        if (selectedGoal.HasValue && selectedGoal.Value <= 0)
+        {
+            return new Error("Fundraiser.InvalidGoalFilter", "Сума цілі у фільтрі має бути більшою за 0");
+        }
+
+        var normalizedGoal = selectedGoal.HasValue
+            ? Math.Min(selectedGoal.Value, goalUpperBound)
+            : goalUpperBound;
+
+        return new NormalizedFundraiserFilter(
+            selectedCategories,
+            selectedStatuses,
+            selectedCurrency,
+            normalizedGoal,
+            goalUpperBound);
+    }
+
+    private static int GetGoalUpperBoundByCurrency(string currency)
+    {
+        return currency is "USD" or "EUR"
+            ? MaxGoalForUsdEur
+            : MaxGoalForUah;
     }
 
     private async Task<string> EnsureUniqueSlugAsync(string baseSlug, CancellationToken cancellationToken)
@@ -442,6 +551,13 @@ public sealed class FundraiserService : IFundraiserService
     }
 
     private readonly record struct SavedUpload(string RelativeUrl);
+
+    private sealed record NormalizedFundraiserFilter(
+        IReadOnlyList<FundraiserCategory> Categories,
+        IReadOnlyList<string> Statuses,
+        string Currency,
+        decimal GoalAmountMax,
+        int GoalAmountUpperBound);
 }
 
 

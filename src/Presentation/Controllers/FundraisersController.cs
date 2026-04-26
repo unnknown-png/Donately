@@ -15,9 +15,16 @@ public class FundraisersController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index([FromQuery] FundraisersFilterQueryViewModel filters, CancellationToken cancellationToken)
     {
-        var result = await _fundraiserService.GetActualFundraisersAsync(cancellationToken);
+        var result = await _fundraiserService.GetActualFundraisersAsync(new FundraisersFilterRequest
+        {
+            Categories = filters.Categories,
+            Statuses = filters.Statuses,
+            Currency = filters.Currency,
+            GoalAmountMax = filters.GoalAmountMax
+        }, cancellationToken);
+
         if (result.IsFailure)
         {
             TempData["FundraiserError"] = result.Error.Message;

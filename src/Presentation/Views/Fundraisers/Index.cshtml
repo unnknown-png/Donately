@@ -1,6 +1,13 @@
 @model FundraisersListViewModel
 @{
     ViewData["Title"] = "Актуальні збори";
+    var selectedCategories = Model.Filters.SelectedCategories.ToHashSet();
+    var selectedStatuses = Model.Filters.SelectedStatuses.ToHashSet();
+    var hasActiveFilters =
+        Model.Filters.SelectedCategories.Count > 0 ||
+        Model.Filters.SelectedStatuses.Count > 0 ||
+        Model.Filters.SelectedCurrency != "ALL" ||
+        Model.Filters.GoalAmountMax < Model.Filters.GoalAmountUpperBound;
 }
 
 <section class="app-section">
@@ -20,30 +27,104 @@
     }
 
     <div class="fundraisers-layout">
-        <aside class="placeholder-card fundraisers-sidebar" aria-label="Фільтри зборів">
+        <form class="placeholder-card fundraisers-sidebar" aria-label="Фільтри зборів" asp-controller="Fundraisers" asp-action="Index" method="get" data-goal-filter>
             <div class="fundraisers-sidebar__header">
-                <p class="fundraisers-sidebar__kicker">Фільтрація</p>
-                <h2 class="fundraisers-sidebar__title">Категорії</h2>
-                <p class="fundraisers-sidebar__subtitle">Наразі доступні три основні категорії зборів.</p>
+                <p class="fundraisers-sidebar__kicker">Параметри пошуку</p>
+                <p class="fundraisers-sidebar__subtitle">Шукай збори за відповідними критеріями</p>
             </div>
 
             <div class="fundraisers-filter-group">
                 <span class="fundraisers-filter-group__label">Категорія</span>
                 <div class="fundraisers-filter-chips">
-                    <span class="fundraisers-filter-chip fundraisers-filter-chip--active">Медицина</span>
-                    <span class="fundraisers-filter-chip">Допомога ЗСУ</span>
-                    <span class="fundraisers-filter-chip">Підтримка</span>
+                    <label class="fundraisers-filter-chip @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.Medicine) ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="checkbox" name="Categories" value="Medicine" @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.Medicine) ? "checked" : null) />
+                        Медицина
+                    </label>
+                    <label class="fundraisers-filter-chip @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.MilitarySupport) ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="checkbox" name="Categories" value="MilitarySupport" @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.MilitarySupport) ? "checked" : null) />
+                        Допомога ЗСУ
+                    </label>
+                    <label class="fundraisers-filter-chip @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.Support) ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="checkbox" name="Categories" value="Support" @(selectedCategories.Contains(Donately.Domain.Entities.FundraiserCategory.Support) ? "checked" : null) />
+                        Підтримка
+                    </label>
                 </div>
             </div>
 
             <div class="fundraisers-filter-group">
                 <span class="fundraisers-filter-group__label">Статуси</span>
                 <div class="fundraisers-filter-chips">
-                    <span class="fundraisers-filter-chip fundraisers-filter-chip--soft">Терміново</span>
-                    <span class="fundraisers-filter-chip fundraisers-filter-chip--soft">Новий (24 год)</span>
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(selectedStatuses.Contains("urgent") ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="checkbox" name="Statuses" value="urgent" @(selectedStatuses.Contains("urgent") ? "checked" : null) />
+                        Терміново
+                    </label>
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(selectedStatuses.Contains("new") ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="checkbox" name="Statuses" value="new" @(selectedStatuses.Contains("new") ? "checked" : null) />
+                        Новий
+                    </label>
                 </div>
             </div>
-        </aside>
+
+            <div class="fundraisers-filter-group">
+                <span class="fundraisers-filter-group__label">Валюта</span>
+                <div class="fundraisers-filter-chips">
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(Model.Filters.SelectedCurrency == "ALL" ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="radio" name="Currency" value="ALL" data-goal-currency @(Model.Filters.SelectedCurrency == "ALL" ? "checked" : null) />
+                        Усі валюти
+                    </label>
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(Model.Filters.SelectedCurrency == "UAH" ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="radio" name="Currency" value="UAH" data-goal-currency @(Model.Filters.SelectedCurrency == "UAH" ? "checked" : null) />
+                        UAH
+                    </label>
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(Model.Filters.SelectedCurrency == "USD" ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="radio" name="Currency" value="USD" data-goal-currency @(Model.Filters.SelectedCurrency == "USD" ? "checked" : null) />
+                        USD
+                    </label>
+                    <label class="fundraisers-filter-chip fundraisers-filter-chip--soft @(Model.Filters.SelectedCurrency == "EUR" ? "fundraisers-filter-chip--active" : string.Empty)">
+                        <input class="fundraisers-filter-chip__input" type="radio" name="Currency" value="EUR" data-goal-currency @(Model.Filters.SelectedCurrency == "EUR" ? "checked" : null) />
+                        EUR
+                    </label>
+                </div>
+            </div>
+
+            <div class="fundraisers-filter-group">
+                <span class="fundraisers-filter-group__label">Ціль збору до</span>
+                <div class="fundraisers-filter-range">
+                    <input
+                        type="range"
+                        min="1"
+                        max="@Model.Filters.GoalAmountUpperBound"
+                        value="@Model.Filters.GoalAmountMax"
+                        class="form-range"
+                        data-goal-range />
+
+                    <div class="fundraisers-filter-range__labels">
+                        <span>1</span>
+                        <span data-goal-value>@Model.Filters.GoalAmountMax.ToString("N0")</span>
+                    </div>
+
+                    <input
+                        type="number"
+                        min="1"
+                        max="@Model.Filters.GoalAmountUpperBound"
+                        value="@Model.Filters.GoalAmountMax"
+                        name="GoalAmountMax"
+                        class="form-control fundraiser-filter-goal-input"
+                        data-goal-input />
+
+                    <small class="fundraisers-filter-range__hint">
+                        Максимум для обраної валюти:
+                        <span data-goal-max>@Model.Filters.GoalAmountUpperBound.ToString("N0")</span>
+                    </small>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary fundraisers-filter-apply">Застосувати</button>
+            @if (hasActiveFilters)
+            {
+                <a class="btn btn-link fundraisers-filter-reset" asp-controller="Fundraisers" asp-action="Index">Скинути</a>
+            }
+        </form>
 
         <div class="fundraisers-content">
             <div class="fundraisers-toolbar">

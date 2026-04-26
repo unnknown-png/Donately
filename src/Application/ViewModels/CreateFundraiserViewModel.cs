@@ -49,6 +49,32 @@ public sealed class FundraiserCreateAccessViewModel
 public sealed class FundraisersListViewModel
 {
     public IReadOnlyList<FundraiserCardViewModel> Items { get; init; } = [];
+
+    public FundraisersFiltersStateViewModel Filters { get; init; } = new();
+}
+
+public sealed class FundraisersFilterQueryViewModel
+{
+    public List<FundraiserCategory> Categories { get; set; } = [];
+
+    public List<string> Statuses { get; set; } = [];
+
+    public string? Currency { get; set; }
+
+    public decimal? GoalAmountMax { get; set; }
+}
+
+public sealed class FundraisersFiltersStateViewModel
+{
+    public IReadOnlyList<FundraiserCategory> SelectedCategories { get; init; } = [];
+
+    public IReadOnlyList<string> SelectedStatuses { get; init; } = [];
+
+    public string SelectedCurrency { get; init; } = "ALL";
+
+    public decimal GoalAmountMax { get; init; }
+
+    public int GoalAmountUpperBound { get; init; }
 }
 
 public sealed class FundraiserCardViewModel

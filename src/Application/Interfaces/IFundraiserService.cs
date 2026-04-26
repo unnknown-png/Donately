@@ -12,7 +12,7 @@ public interface IFundraiserService
 
     Task<Result<CreateFundraiserResult>> CreateAsync(CreateFundraiserRequest request, CancellationToken cancellationToken = default);
 
-    Task<Result<FundraisersListViewModel>> GetActualFundraisersAsync(CancellationToken cancellationToken = default);
+    Task<Result<FundraisersListViewModel>> GetActualFundraisersAsync(FundraisersFilterRequest request, CancellationToken cancellationToken = default);
 
     Task<Result<FundraiserDetailsViewModel>> GetDetailsAsync(string slug, CancellationToken cancellationToken = default);
 }
@@ -54,5 +54,16 @@ public sealed class CreateFundraiserResult
     public Guid FundraiserId { get; init; }
 
     public string Slug { get; init; } = string.Empty;
+}
+
+public sealed class FundraisersFilterRequest
+{
+    public IReadOnlyList<FundraiserCategory> Categories { get; init; } = [];
+
+    public IReadOnlyList<string> Statuses { get; init; } = [];
+
+    public string? Currency { get; init; }
+
+    public decimal? GoalAmountMax { get; init; }
 }
 
