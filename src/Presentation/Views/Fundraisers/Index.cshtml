@@ -69,35 +69,41 @@
                         var progressPercent = item.GoalAmount <= 0
                             ? 0m
                             : Math.Min(100m, Math.Round(item.CurrentAmount / item.GoalAmount * 100m, 0));
+                        var hasCoverImage = !string.IsNullOrWhiteSpace(item.CoverImageUrl);
 
                         var authorInitial = string.IsNullOrWhiteSpace(item.AuthorNickName)
                             ? "U"
                             : item.AuthorNickName[..1].ToUpperInvariant();
 
                         <article class="placeholder-card fundraiser-card">
-                            @if (!string.IsNullOrWhiteSpace(item.CoverImageUrl))
+                            @if (hasCoverImage)
                             {
-                                <img class="fundraiser-card__media fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" />
+                                <div class="fundraiser-card__media">
+                                    <img class="fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" />
+                                </div>
                             }
                             else
                             {
-                                <div class="fundraiser-card__media"></div>
+                                <div class="fundraiser-card__media fundraiser-card__media--placeholder"></div>
                             }
 
                             <div class="fundraiser-card__body">
                                 <div class="fundraiser-card__meta">
                                     <span class="fundraiser-card__tag">@item.CategoryLabel</span>
-                                    <div class="fundraiser-card__status-stack">
-                                        @if (item.IsUrgent)
-                                        {
-                                            <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
-                                        }
+                                    @if (item.IsUrgent || item.IsNew)
+                                    {
+                                        <div class="fundraiser-card__status-stack">
+                                            @if (item.IsUrgent)
+                                            {
+                                                <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
+                                            }
 
-                                        @if (item.IsNew)
-                                        {
-                                            <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
-                                        }
-                                    </div>
+                                            @if (item.IsNew)
+                                            {
+                                                <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
+                                            }
+                                        </div>
+                                    }
                                 </div>
 
                                 <div class="fundraiser-card__title-row">

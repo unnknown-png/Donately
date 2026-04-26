@@ -23,13 +23,18 @@
 
         <div class="fundraiser-details__meta">
             <span class="fundraiser-card__tag">@Model.CategoryLabel</span>
-            @if (Model.IsUrgent)
+            @if (Model.IsUrgent || Model.IsNew)
             {
-                <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
-            }
-            @if (Model.IsNew)
-            {
-                <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
+                <div class="fundraiser-card__status-stack">
+                    @if (Model.IsUrgent)
+                    {
+                        <span class="fundraiser-card__status fundraiser-card__status--urgent">Терміново</span>
+                    }
+                    @if (Model.IsNew)
+                    {
+                        <span class="fundraiser-card__status fundraiser-card__status--new">Новий</span>
+                    }
+                </div>
             }
         </div>
 
