@@ -32,6 +32,11 @@ public class FundraiserConfiguration : IEntityTypeConfiguration<Fundraiser>
         builder.Property(x => x.Description)
             .HasColumnType("text");
 
+        builder.Property(x => x.Category)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired();
+
         builder.Property(x => x.GoalAmount)
             .HasColumnType("numeric(18,2)")
             .IsRequired();
@@ -44,6 +49,10 @@ public class FundraiserConfiguration : IEntityTypeConfiguration<Fundraiser>
         builder.Property(x => x.Currency)
             .HasMaxLength(3)
             .HasDefaultValue("UAH")
+            .IsRequired();
+
+        builder.Property(x => x.IsUrgent)
+            .HasDefaultValue(false)
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
@@ -71,6 +80,7 @@ public class FundraiserConfiguration : IEntityTypeConfiguration<Fundraiser>
 
         builder.HasIndex(x => x.CreatedAt);
         builder.HasIndex(x => x.IsActive);
+        builder.HasIndex(x => x.Category);
 
         builder.HasOne(x => x.CreatedBy)
             .WithMany()

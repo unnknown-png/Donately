@@ -1,0 +1,92 @@
+@using Donately.Domain.Entities
+@model CreateFundraiserViewModel
+@{
+    ViewData["Title"] = "Створення збору";
+}
+
+<section class="app-section">
+    <div class="section-header">
+        <h1 class="section-title">Створити власний збір</h1>
+        <p class="section-subtitle">Заповніть основні дані, щоб розмістити збір у каталозі актуальних зборів.</p>
+    </div>
+
+    <article class="placeholder-card fundraiser-create">
+        <form asp-action="Create" asp-controller="Fundraisers" method="post" enctype="multipart/form-data" class="fundraiser-create__form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="fundraiser-create__grid">
+                <div class="fundraiser-create__field fundraiser-create__field--full">
+                    <label asp-for="Title" class="fundraiser-create__label"></label>
+                    <input asp-for="Title" class="form-control fundraiser-create__input" placeholder="Наприклад: Збір на лікування" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field fundraiser-create__field--full">
+                    <label asp-for="ShortDescription" class="fundraiser-create__label">Короткий опис</label>
+                    <textarea asp-for="ShortDescription" class="form-control fundraiser-create__textarea" rows="3" placeholder="Короткий опис для картки збору"></textarea>
+                    <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field fundraiser-create__field--full">
+                    <label asp-for="Description" class="fundraiser-create__label">Детальний опис</label>
+                    <textarea asp-for="Description" class="form-control fundraiser-create__textarea" rows="6" placeholder="Опишіть мету, контекст і чому це важливо"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field">
+                    <label asp-for="Category" class="fundraiser-create__label">Категорія</label>
+                    <select asp-for="Category" class="form-select fundraiser-create__input">
+                        <option value="@FundraiserCategory.Medicine">Медицина</option>
+                        <option value="@FundraiserCategory.MilitarySupport">Допомога ЗСУ</option>
+                        <option value="@FundraiserCategory.Support">Підтримка</option>
+                    </select>
+                    <span asp-validation-for="Category" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field">
+                    <label asp-for="GoalAmount" class="fundraiser-create__label">Ціль</label>
+                    <input asp-for="GoalAmount" class="form-control fundraiser-create__input" type="number" min="1" step="0.01" />
+                    <span asp-validation-for="GoalAmount" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field">
+                    <label asp-for="Currency" class="fundraiser-create__label">Валюта</label>
+                    <select asp-for="Currency" class="form-select fundraiser-create__input">
+                        <option value="UAH">UAH</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                    <span asp-validation-for="Currency" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field fundraiser-create__field--checkbox">
+                    <input asp-for="IsUrgent" class="form-check-input" />
+                    <label asp-for="IsUrgent" class="fundraiser-create__checkbox-label">Позначити як терміновий збір</label>
+                </div>
+
+                <div class="fundraiser-create__field fundraiser-create__field--full">
+                    <label asp-for="CoverImage" class="fundraiser-create__label">Фото для картки</label>
+                    <input asp-for="CoverImage" class="form-control fundraiser-create__input" type="file" accept=".jpg,.jpeg,.png,.webp" />
+                    <span asp-validation-for="CoverImage" class="text-danger"></span>
+                </div>
+
+                <div class="fundraiser-create__field fundraiser-create__field--full">
+                    <label asp-for="Attachments" class="fundraiser-create__label">Додаткові файли</label>
+                    <input asp-for="Attachments" class="form-control fundraiser-create__input" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" />
+                    <span asp-validation-for="Attachments" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="fundraiser-create__actions">
+                <button type="submit" class="btn btn-primary">Розмістити збір</button>
+                <a class="btn btn-outline-secondary" asp-controller="Fundraisers" asp-action="Index">Скасувати</a>
+            </div>
+        </form>
+    </article>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
