@@ -3,16 +3,19 @@ using Donately.Application.Common.Results;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Donately.Infrastructure.Services;
 
 public class PaymentWebhookService : IPaymentWebhookService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<PaymentWebhookService> _logger;
 
-    public PaymentWebhookService(ApplicationDbContext dbContext)
+    public PaymentWebhookService(ApplicationDbContext dbContext, ILogger<PaymentWebhookService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<Result> ConfirmDonationPaymentAsync(PaymentWebhookConfirmationRequest request, CancellationToken cancellationToken = default)
@@ -26,11 +29,27 @@ public class PaymentWebhookService : IPaymentWebhookService
 
         if (donation is null)
         {
+            _logger.LogWarning("Payment webhook failed: donation not found. donationId={DonationId}, provider={Provider}, status={Status}, amount={Amount}, currency={Currency}",
+                request.DonationId,
+                request.Provider,
+                request.TransactionStatus,
+                request.Amount,
+                request.Currency);
+
             return new Error("Donation.NotFound", $"Donation '{request.DonationId}' was not found.");
         }
 
-        if (request.Amount != donation.Amount || !string.Equals(request.Currency, donation.Currency, StringComparison.OrdinalIgnoreCase))
+        if (Math.Abs(request.Amount - donation.Amount) > 0.01m || !string.Equals(request.Currency, donation.Currency, StringComparison.OrdinalIgnoreCase))
         {
+            _logger.LogWarning("Payment webhook failed: amount/currency mismatch. donationId={DonationId}, expectedAmount={ExpectedAmount}, receivedAmount={ReceivedAmount}, expectedCurrency={ExpectedCurrency}, receivedCurrency={ReceivedCurrency}, provider={Provider}, status={Status}",
+                request.DonationId,
+                donation.Amount,
+                request.Amount,
+                donation.Currency,
+                request.Currency,
+                request.Provider,
+                request.TransactionStatus);
+
             return new Error("Donation.AmountOrCurrencyMismatch", "Webhook amount/currency does not match donation data.");
         }
 
@@ -51,6 +70,12 @@ public class PaymentWebhookService : IPaymentWebhookService
 
             if (paymentTransaction is null)
             {
+                _logger.LogWarning("Payment webhook failed: payment transaction not found by donation link. donationId={DonationId}, paymentTransactionId={PaymentTransactionId}, provider={Provider}, status={Status}",
+                    request.DonationId,
+                    donation.PaymentTransactionId.Value,
+                    request.Provider,
+                    request.TransactionStatus);
+
                 return new Error("PaymentTransaction.NotFound", $"Payment transaction '{donation.PaymentTransactionId.Value}' was not found.");
             }
         }

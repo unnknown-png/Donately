@@ -64,6 +64,29 @@
                 <span>@Model.CurrentAmount.ToString("N0") @Model.Currency / @Model.GoalAmount.ToString("N0") @Model.Currency</span>
             </div>
         </div>
+        
+        <div class="fundraiser-details__description">
+            @Model.Description
+        </div>
+
+        <div class="fundraiser-details__attachments">
+            <h2 class="fundraiser-details__subtitle">Прикріплені файли</h2>
+            @if (Model.Attachments.Count == 0)
+            {
+                <p class="text-muted">До цього збору ще не додано файлів.</p>
+            }
+            else
+            {
+                <ul class="fundraiser-details__attachment-list">
+                    @foreach (var attachment in Model.Attachments)
+                    {
+                        <li>
+                            <a href="@attachment.Url" target="_blank" rel="noopener noreferrer">@attachment.FileName</a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
 
         <div class="fundraiser-details__support">
             <h2 class="fundraiser-details__subtitle">Підтримати збір</h2>
@@ -96,29 +119,6 @@
 
                 <button type="submit" class="btn btn-primary">Підтримати</button>
             </form>
-        </div>
-
-        <div class="fundraiser-details__description">
-            @Model.Description
-        </div>
-
-        <div class="fundraiser-details__attachments">
-            <h2 class="fundraiser-details__subtitle">Прикріплені файли</h2>
-            @if (Model.Attachments.Count == 0)
-            {
-                <p class="text-muted">До цього збору ще не додано файлів.</p>
-            }
-            else
-            {
-                <ul class="fundraiser-details__attachment-list">
-                    @foreach (var attachment in Model.Attachments)
-                    {
-                        <li>
-                            <a href="@attachment.Url" target="_blank" rel="noopener noreferrer">@attachment.FileName</a>
-                        </li>
-                    }
-                </ul>
-            }
         </div>
     </article>
 </section>

@@ -9,6 +9,7 @@ using Donately.Application.ViewModels;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Donately.Infrastructure.Services;
@@ -38,15 +39,18 @@ public class DonationPaymentService : IDonationPaymentService
     };
 
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<DonationPaymentService> _logger;
     private readonly LiqPayOptions _liqPayOptions;
     private readonly IPaymentWebhookService _paymentWebhookService;
 
     public DonationPaymentService(
         ApplicationDbContext dbContext,
+        ILogger<DonationPaymentService> logger,
         IOptions<LiqPayOptions> liqPayOptions,
         IPaymentWebhookService paymentWebhookService)
     {
         _dbContext = dbContext;
+        _logger = logger;
         _liqPayOptions = liqPayOptions.Value;
         _paymentWebhookService = paymentWebhookService;
     }
@@ -154,24 +158,43 @@ public class DonationPaymentService : IDonationPaymentService
 
     public async Task<Result> HandleLiqPayCallbackAsync(LiqPayCallbackRequest request, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation(
+            "LiqPay callback received: dataLength={DataLength}, signatureLength={SignatureLength}, hasData={HasData}, hasSignature={HasSignature}",
+            request.Data?.Length ?? 0,
+            request.Signature?.Length ?? 0,
+            !string.IsNullOrWhiteSpace(request.Data),
+            !string.IsNullOrWhiteSpace(request.Signature));
+
         if (string.IsNullOrWhiteSpace(request.Data) || string.IsNullOrWhiteSpace(request.Signature))
         {
+            _logger.LogWarning("LiqPay callback rejected: empty data or signature. dataLength={DataLength}, signatureLength={SignatureLength}",
+                request.Data?.Length ?? 0,
+                request.Signature?.Length ?? 0);
+
             return new Error("Payment.Callback.InvalidPayload", "Порожній callback від LiqPay.");
         }
 
         var expectedSignature = ComputeSignature(_liqPayOptions.PrivateKey, request.Data);
         if (!AreSignaturesEqual(expectedSignature, request.Signature))
         {
+            _logger.LogWarning("LiqPay callback rejected: invalid signature. dataLength={DataLength}, signatureLength={SignatureLength}",
+                request.Data.Length,
+                request.Signature.Length);
+
             return new Error("Payment.Callback.InvalidSignature", "Невірний підпис callback LiqPay.");
         }
 
         if (!TryDecodeBase64(request.Data, out var payloadJson))
         {
+            _logger.LogWarning("LiqPay callback rejected: invalid base64 data. dataLength={DataLength}", request.Data.Length);
+
             return new Error("Payment.Callback.InvalidData", "Некоректний формат data у callback LiqPay.");
         }
 
         if (!TryParseJsonDocument(payloadJson, out var payloadDocument) || payloadDocument is null)
         {
+            _logger.LogWarning("LiqPay callback rejected: invalid json payload. decodedLength={DecodedLength}", payloadJson.Length);
+
             return new Error("Payment.Callback.InvalidJson", "Некоректний JSON у callback LiqPay.");
         }
 
@@ -179,34 +202,57 @@ public class DonationPaymentService : IDonationPaymentService
         var publicKey = GetString(payload, "public_key");
         if (!string.Equals(publicKey, _liqPayOptions.PublicKey, StringComparison.Ordinal))
         {
+            _logger.LogWarning("LiqPay callback rejected: public key mismatch. expectedPublicKeyPrefix={ExpectedPrefix}, receivedPublicKeyPrefix={ReceivedPrefix}",
+                MaskKey(_liqPayOptions.PublicKey),
+                MaskKey(publicKey));
+
             return new Error("Payment.Callback.PublicKeyMismatch", "Публічний ключ у callback не збігається з налаштуваннями.");
         }
 
         var orderId = GetString(payload, "order_id");
         if (!Guid.TryParse(orderId, out var donationId))
         {
+            _logger.LogWarning("LiqPay callback rejected: invalid order_id format. orderId={OrderId}", orderId);
+
             return new Error("Payment.Callback.InvalidOrderId", "order_id у callback не є валідним ідентифікатором донату.");
         }
 
         var status = GetString(payload, "status");
         if (string.IsNullOrWhiteSpace(status))
         {
+            _logger.LogWarning("LiqPay callback rejected: missing status. orderId={OrderId}", orderId);
+
             return new Error("Payment.Callback.MissingStatus", "В callback відсутній статус транзакції.");
         }
 
         var currency = GetString(payload, "currency").ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(currency))
         {
+            _logger.LogWarning("LiqPay callback rejected: missing currency. orderId={OrderId}, status={Status}", orderId, status);
+
             return new Error("Payment.Callback.MissingCurrency", "В callback відсутня валюта транзакції.");
         }
 
         var amount = GetDecimal(payload, "amount");
         if (amount <= 0)
         {
+            _logger.LogWarning("LiqPay callback rejected: invalid amount. orderId={OrderId}, status={Status}, rawAmount={RawAmount}",
+                orderId,
+                status,
+                GetString(payload, "amount"));
+
             return new Error("Payment.Callback.InvalidAmount", "Некоректна сума транзакції у callback.");
         }
 
         var providerTransactionId = GetString(payload, "transaction_id");
+
+        _logger.LogInformation(
+            "LiqPay callback payload: order_id={OrderId}, status={Status}, amount={Amount}, currency={Currency}, transaction_id={TransactionId}",
+            orderId,
+            status,
+            amount,
+            currency,
+            string.IsNullOrWhiteSpace(providerTransactionId) ? "<empty>" : providerTransactionId);
 
         WebhookEvent? webhookEvent = null;
         if (!string.IsNullOrWhiteSpace(providerTransactionId))
@@ -215,11 +261,6 @@ public class DonationPaymentService : IDonationPaymentService
                 .SingleOrDefaultAsync(
                     x => x.Provider == ProviderName && x.ProviderEventId == providerTransactionId,
                     cancellationToken);
-
-            if (webhookEvent?.Processed == true)
-            {
-                return Success.Value;
-            }
         }
 
         webhookEvent ??= new WebhookEvent
@@ -258,6 +299,14 @@ public class DonationPaymentService : IDonationPaymentService
 
         if (confirmationResult.IsFailure)
         {
+            _logger.LogWarning(
+                "LiqPay callback processing failed: code={ErrorCode}, message={ErrorMessage}, order_id={OrderId}, status={Status}, amount={Amount}",
+                confirmationResult.Error.Code,
+                confirmationResult.Error.Message,
+                orderId,
+                status,
+                amount);
+
             webhookEvent.Error = confirmationResult.Error.ToString();
             webhookEvent.Processed = false;
             webhookEvent.ProcessedAt = null;
@@ -353,9 +402,73 @@ public class DonationPaymentService : IDonationPaymentService
     {
         var value = GetString(payload, propertyName);
 
-        return decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+        return TryParseFlexibleDecimal(value, out var parsed)
             ? decimal.Round(parsed, 2, MidpointRounding.AwayFromZero)
             : 0m;
+    }
+
+    private static bool TryParseFlexibleDecimal(string value, out decimal parsed)
+    {
+        parsed = 0m;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var normalized = value
+            .Replace(" ", string.Empty)
+            .Replace("\u00A0", string.Empty)
+            .Replace("'", string.Empty);
+
+        var commaCount = normalized.Count(x => x == ',');
+        var dotCount = normalized.Count(x => x == '.');
+
+        if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out parsed))
+        {
+            return true;
+        }
+
+        if (commaCount > 0 && dotCount > 0)
+        {
+            var lastCommaIndex = normalized.LastIndexOf(',');
+            var lastDotIndex = normalized.LastIndexOf('.');
+            var decimalSeparator = lastCommaIndex > lastDotIndex ? ',' : '.';
+            var thousandsSeparator = decimalSeparator == ',' ? '.' : ',';
+
+            normalized = normalized.Replace(thousandsSeparator.ToString(), string.Empty)
+                .Replace(decimalSeparator, '.');
+
+            return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed);
+        }
+
+        if (commaCount > 0 || dotCount > 0)
+        {
+            var separator = commaCount > 0 ? ',' : '.';
+            var parts = normalized.Split(separator);
+
+            if (parts.Length == 2)
+            {
+                var leftPart = parts[0];
+                var rightPart = parts[1];
+
+                if (rightPart.Length == 3 && leftPart.Length > 0)
+                {
+                    normalized = leftPart + rightPart;
+                    return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed);
+                }
+
+                normalized = leftPart + "." + rightPart;
+                return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed);
+            }
+        }
+
+        if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static bool TryDecodeBase64(string source, out string decoded)
@@ -400,6 +513,18 @@ public class DonationPaymentService : IDonationPaymentService
         }
 
         return true;
+    }
+
+    private static string MaskKey(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "<empty>";
+        }
+
+        return value.Length <= 6
+            ? new string('*', value.Length)
+            : $"{value[..3]}***{value[^3..]}";
     }
 }
 
