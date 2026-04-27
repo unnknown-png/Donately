@@ -80,6 +80,11 @@ public class PaymentWebhookService : IPaymentWebhookService
         }
         else
         {
+            if (!string.IsNullOrWhiteSpace(request.ProviderTransactionId))
+            {
+                paymentTransaction.ProviderTransactionId = request.ProviderTransactionId;
+            }
+
             paymentTransaction.Status = request.TransactionStatus;
             paymentTransaction.Metadata = request.Metadata;
             paymentTransaction.WebhookPayload = request.WebhookPayload;

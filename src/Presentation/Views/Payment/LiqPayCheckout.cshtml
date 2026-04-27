@@ -1,0 +1,24 @@
+@model LiqPayCheckoutViewModel
+@{
+    ViewData["Title"] = "Переадресація на оплату";
+}
+
+<section class="app-section auth-section">
+    <div class="placeholder-card auth-card">
+        <h1 class="section-title">Переадресація на LiqPay</h1>
+        <p class="section-subtitle">Зачекай декілька секунд, відкриваємо сторінку оплати...</p>
+
+        <form id="liqpay-checkout-form" method="POST" action="@Model.CheckoutUrl" accept-charset="utf-8">
+            <input type="hidden" name="data" value="@Model.Data" />
+            <input type="hidden" name="signature" value="@Model.Signature" />
+            <noscript>
+                <button type="submit" class="btn btn-primary">Перейти до оплати</button>
+            </noscript>
+        </form>
+    </div>
+</section>
+
+<script>
+    document.getElementById('liqpay-checkout-form')?.submit();
+</script>
+
