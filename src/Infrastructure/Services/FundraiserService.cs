@@ -360,6 +360,7 @@ public sealed class FundraiserService : IFundraiserService
         return new FundraiserDetailsViewModel
         {
             Id = fundraiser.Id,
+            Slug = fundraiser.Slug,
             Title = fundraiser.Title,
             Description = fundraiser.Description ?? string.Empty,
             ShortDescription = fundraiser.ShortDescription ?? string.Empty,

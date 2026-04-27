@@ -50,10 +50,17 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.Configure<EmailSenderOptions>(
     builder.Configuration.GetSection(EmailSenderOptions.SectionName));
 
+builder.Services
+    .AddOptions<LiqPayOptions>()
+    .Bind(builder.Configuration.GetSection(LiqPayOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
+builder.Services.AddScoped<IDonationPaymentService, DonationPaymentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
