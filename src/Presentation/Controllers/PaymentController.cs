@@ -72,5 +72,12 @@ public class PaymentController : BaseController
             ? BadRequest(callbackResult.Error.Message)
             : Content("ok", "text/plain");
     }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult LiqPayCallback()
+    {
+        return Content("ok", "text/plain");
+    }
 }
 

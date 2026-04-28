@@ -229,11 +229,12 @@ public sealed class FundraiserService : IFundraiserService
         var normalizedFilter = normalizedFilterResult.Value;
         var utcNow = DateTime.UtcNow;
         var newSince = utcNow - TimeSpan.FromHours(24);
+        var completedSince = utcNow - TimeSpan.FromSeconds(30);
 
         var query = _dbContext.Fundraisers
             .AsNoTracking()
             .Include(x => x.CreatedBy)
-            .Where(x => x.IsActive);
+            .Where(x => x.IsActive && (x.CurrentAmount < x.GoalAmount || (x.UpdatedAt.HasValue && x.UpdatedAt >= completedSince)));
 
         if (normalizedFilter.Categories.Count > 0)
         {
@@ -402,11 +403,11 @@ public sealed class FundraiserService : IFundraiserService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var selectedCategories = (request.Categories ?? Array.Empty<FundraiserCategory>())
+        var selectedCategories = request.Categories
             .Distinct()
             .ToArray();
 
-        var selectedStatuses = (request.Statuses ?? Array.Empty<string>())
+        var selectedStatuses = request.Statuses
             .Select(x => x.Trim().ToLowerInvariant())
             .Where(x => x is "urgent" or "new")
             .Distinct(StringComparer.Ordinal)

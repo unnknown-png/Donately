@@ -7,6 +7,7 @@
     var authorInitial = string.IsNullOrWhiteSpace(Model.AuthorNickName)
         ? "U"
         : Model.AuthorNickName[..1].ToUpperInvariant();
+    var isFullyFunded = Model.CurrentAmount >= Model.GoalAmount;
 }
 
 <section class="app-section fundraiser-details">
@@ -64,6 +65,13 @@
                 <span>@Model.CurrentAmount.ToString("N0") @Model.Currency / @Model.GoalAmount.ToString("N0") @Model.Currency</span>
             </div>
         </div>
+
+        @if (isFullyFunded)
+        {
+            <div class="alert alert-success fundraiser-details__completed-alert" role="alert">
+                Ціль збору вже повністю закрита. Дякуємо кожному, хто підтримав цей збір.
+            </div>
+        }
         
         <div class="fundraiser-details__description">
             @Model.Description
@@ -90,35 +98,42 @@
 
         <div class="fundraiser-details__support">
             <h2 class="fundraiser-details__subtitle">Підтримати збір</h2>
-            <form asp-controller="Payment" asp-action="Support" method="post">
-                <input type="hidden" name="FundraiserId" value="@Model.Id" />
-                <input type="hidden" name="FundraiserSlug" value="@Model.Slug" />
+            @if (isFullyFunded)
+            {
+                <p class="text-muted mb-0">Збір закрито, нові донати недоступні.</p>
+            }
+            else
+            {
+                <form asp-controller="Payment" asp-action="Support" method="post">
+                    <input type="hidden" name="FundraiserId" value="@Model.Id" />
+                    <input type="hidden" name="FundraiserSlug" value="@Model.Slug" />
 
-                <div class="mb-3">
-                    <label class="form-label" for="donationAmount">Сума (@Model.Currency)</label>
-                    <input
-                        id="donationAmount"
-                        class="form-control"
-                        type="number"
-                        name="Amount"
-                        min="1"
-                        step="0.01"
-                        value="100"
-                        required />
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="donationAmount">Сума (@Model.Currency)</label>
+                        <input
+                            id="donationAmount"
+                            class="form-control"
+                            type="number"
+                            name="Amount"
+                            min="1"
+                            step="0.01"
+                            value="100"
+                            required />
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label" for="donationNote">Коментар (необов'язково)</label>
-                    <textarea id="donationNote" class="form-control" name="Note" maxlength="500" rows="2"></textarea>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="donationNote">Коментар (необов'язково)</label>
+                        <textarea id="donationNote" class="form-control" name="Note" maxlength="500" rows="2"></textarea>
+                    </div>
 
-                <div class="form-check mb-3">
-                    <input id="donationAnonymous" class="form-check-input" type="checkbox" name="Anonymous" value="true" />
-                    <label class="form-check-label" for="donationAnonymous">Задонатити анонімно</label>
-                </div>
+                    <div class="form-check mb-3">
+                        <input id="donationAnonymous" class="form-check-input" type="checkbox" name="Anonymous" value="true" />
+                        <label class="form-check-label" for="donationAnonymous">Задонатити анонімно</label>
+                    </div>
 
-                <button type="submit" class="btn btn-primary">Підтримати</button>
-            </form>
+                    <button type="submit" class="btn btn-primary">Підтримати</button>
+                </form>
+            }
         </div>
     </article>
 </section>

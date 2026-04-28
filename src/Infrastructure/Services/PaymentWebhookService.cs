@@ -3,7 +3,6 @@ using Donately.Application.Common.Results;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Donately.Infrastructure.Services;
 
@@ -37,6 +36,35 @@ public class PaymentWebhookService : IPaymentWebhookService
                 request.Currency);
 
             return new Error("Donation.NotFound", $"Donation '{request.DonationId}' was not found.");
+        }
+
+        var fundraiser = await _dbContext.Fundraisers
+            .FromSqlInterpolated($"SELECT * FROM \"Fundraisers\" WHERE \"Id\" = {donation.FundraiserId} FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (fundraiser is null)
+        {
+            _logger.LogWarning("Payment webhook failed: fundraiser not found. donationId={DonationId}, fundraiserId={FundraiserId}, provider={Provider}, status={Status}, amount={Amount}, currency={Currency}",
+                request.DonationId,
+                donation.FundraiserId,
+                request.Provider,
+                request.TransactionStatus,
+                request.Amount,
+                request.Currency);
+
+            return new Error("Fundraiser.NotFound", $"Fundraiser '{donation.FundraiserId}' was not found.");
+        }
+
+        if (fundraiser.CurrentAmount >= fundraiser.GoalAmount)
+        {
+            if (!fundraiser.UpdatedAt.HasValue)
+            {
+                fundraiser.UpdatedAt = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return Success.Value;
         }
 
         if (Math.Abs(request.Amount - donation.Amount) > 0.01m || !string.Equals(request.Currency, donation.Currency, StringComparison.OrdinalIgnoreCase))
@@ -120,9 +148,12 @@ public class PaymentWebhookService : IPaymentWebhookService
 
         if (shouldIncreaseCurrentAmount)
         {
-            await _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE \"Fundraisers\" SET \"CurrentAmount\" = \"CurrentAmount\" + {donation.Amount} WHERE \"Id\" = {donation.FundraiserId}",
-                cancellationToken);
+            fundraiser.CurrentAmount += donation.Amount;
+
+            if (fundraiser.CurrentAmount >= fundraiser.GoalAmount && !fundraiser.UpdatedAt.HasValue)
+            {
+                fundraiser.UpdatedAt = DateTime.UtcNow;
+            }
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);

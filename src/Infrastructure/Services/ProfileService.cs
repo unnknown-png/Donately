@@ -42,6 +42,8 @@ public class ProfileService : IProfileService
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 
+        var isNewUser = DateTime.UtcNow - user.CreatedAt <= TimeSpan.FromDays(5);
+
         var emailConfirmed = verificationRequest?.EmailConfirmedAt.HasValue == true;
         var phoneConfirmed = verificationRequest?.PhoneNumberConfirmedAt.HasValue == true;
         var verificationStatusLabel = ResolveVerificationStatusLabel(user.VerificationStatus, verificationRequest, emailConfirmed);
@@ -61,7 +63,8 @@ public class ProfileService : IProfileService
             EmailConfirmed = emailConfirmed,
             VerificationStatusLabel = verificationStatusLabel,
             CurrentVerificationStep = currentVerificationStep,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            IsNewUser = isNewUser
         };
     }
 
