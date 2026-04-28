@@ -100,7 +100,7 @@ public class DonationPaymentService : IDonationPaymentService
         {
             Id = Guid.NewGuid(),
             FundraiserId = fundraiser.Id,
-            DonorId = request.UserId,
+            DonorId = request.Anonymous ? null : request.UserId,
             Amount = decimal.Round(request.Amount, 2, MidpointRounding.AwayFromZero),
             Currency = fundraiser.Currency,
             Anonymous = request.Anonymous,

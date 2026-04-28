@@ -8,9 +8,9 @@ public class Donation
 
     public Fundraiser Fundraiser { get; set; } = null!;
 
-    public Guid DonorId { get; set; }
+    public Guid? DonorId { get; set; }
 
-    public ApplicationUser Donor { get; set; } = null!;
+    public ApplicationUser? Donor { get; set; }
 
     public decimal Amount { get; set; }
 
