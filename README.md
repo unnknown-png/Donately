@@ -1,25 +1,112 @@
-# 🎓 DonateLy
+# 🎓 Donately
 
-**DonateLy** is a web platform designed to organize, manage, and support charitable collections in one centralized space.
+**Donately** — це вебзастосунок для створення, перегляду та підтримки благодійних зборів в одному місці.
 
-The platform simplifies collection creation, the donation process, and moderation, ensuring transparency and trust for all interested parties.
-
----
-
-## 🚀 Project goal
-
-Charity collections are often scattered across chats and social networks, making them difficult to track, verify, and manage.
-
-**DonateLy unites all initiatives in one place** to:
-
-* 📍 Collect all collections on one platform
-* 🚀 Simplify creating new collections
-* 💸 Make donating fast and convenient
-* 🔍 Ensure full transparency of collected funds
-* 🛡️ Provide effective moderation and verification
+Проєкт допомагає зручно керувати зборами, проходити верифікацію, приймати донати через **LiqPay** та відстежувати прогрес збору в реальному часі.
 
 ---
 
-## 👨‍💻 Author
+## 🔹 Основні можливості
 
-Andrew Kahnovets
+- створення благодійних зборів із описом, цільовою сумою, категорією та обкладинкою;
+- перегляд активних зборів із фільтрами за категорією, статусом, валютою та сумою;
+- підтримка зборів через інтеграцію з **LiqPay**;
+- анонімні донати без збереження даних донора в БД;
+- сторінка деталей збору з описом, прикріпленими файлами та прогрес-баром;
+- профіль користувача з аватаром, локацією, біографією та статусом верифікації;
+- верифікація користувачів і модерація заявок;
+- статистика та службові сторінки для аналізу стану платформи.
+
+---
+
+## ⚙️ Технології
+
+- **ASP.NET Core 9**
+- **Razor Views**
+- **Entity Framework Core**
+- **PostgreSQL**
+- **ASP.NET Identity**
+- **Serilog**
+- **SendGrid** для email-сповіщень
+- **LiqPay API** для прийому платежів
+
+---
+
+## 🧱 Архітектура
+
+Проєкт побудований за принципами **Onion Architecture**:
+
+- `Domain` — сутності та бізнес-модель;
+- `Application` — контракти, view models, запити та результатні типи;
+- `Infrastructure` — доступ до даних, сервіси, інтеграції та middleware;
+- `Presentation` — контролери, Razor-представлення та UI.
+
+---
+
+## 🚀 Основні сценарії
+
+### Для користувача
+
+- зареєструватися та увійти в акаунт;
+- доповнити профіль;
+- переглядати активні збори;
+- підтримувати збір через LiqPay;
+- обирати анонімний донат;
+- відслідковувати прогрес збору.
+
+### Для модерації
+
+- переглядати заявки на верифікацію;
+- підтверджувати або відхиляти їх;
+- контролювати актуальні збори та статистику.
+
+---
+
+## 🛠️ Локальний запуск
+
+### Вимоги
+
+- .NET 9 SDK
+- PostgreSQL
+- обліковий запис LiqPay (для тестових платежів)
+
+### Запуск застосунку
+
+```bash
+cd "/Users/andriykahnovets/Desktop/MyFolder/University/III year/2_sem/Cousework/Donately/src"
+dotnet run
+```
+
+### Для тестування LiqPay локально
+
+1. Підніми тунель через `ngrok`:
+
+```bash
+ngrok http 7214
+```
+
+2. Вкажи public URL у secrets або конфігурації:
+
+```bash
+dotnet user-secrets set "LiqPay:PublicBaseUrl" "https://your-ngrok-url.ngrok-free.dev"
+dotnet user-secrets set "LiqPay:PublicKey" "your_public_key"
+dotnet user-secrets set "LiqPay:PrivateKey" "your_private_key"
+```
+
+3. Відкрий сайт через ngrok URL і протестуй донат.
+
+---
+
+## 📁 Структура проєкту
+
+- `src/Domain` — доменні сутності;
+- `src/Application` — контракти та моделі;
+- `src/Infrastructure` — сервіси, БД, middleware;
+- `src/Presentation` — вебінтерфейс;
+- `src/Migrations` — міграції бази даних.
+
+---
+
+## 👨‍💻 Автор
+
+Андрій Кахновець

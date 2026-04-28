@@ -34,9 +34,11 @@ main {
   margin-top: 0.5rem;
 }
 
-.app-section--hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   gap: 2rem;
   align-items: center;
   padding: 2rem;
@@ -794,8 +796,10 @@ main {
 }
 
 .fundraiser-card__body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
+  min-height: 100%;
 }
 
 .fundraiser-card__tag,
@@ -858,6 +862,18 @@ main {
   font-size: 0.9rem;
   color: #5c7185;
   flex-wrap: wrap;
+}
+
+.fundraiser-card__action {
+  margin-top: auto;
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fundraiser-card__meta {
@@ -1442,16 +1458,25 @@ main {
 @media (max-width: 991.98px) {
   .app-header__container {
     flex-wrap: wrap;
+    grid-template-columns: 1fr;
+    justify-items: center;
     gap: 0.75rem;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }
 
+  .app-header__brand,
   .app-header__actions {
     order: 3;
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
+    justify-self: center;
+  }
+
+  .app-header__profile,
+  .app-header__auth-actions {
+    justify-self: center;
   }
 }
 

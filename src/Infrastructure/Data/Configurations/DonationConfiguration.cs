@@ -49,7 +49,8 @@ public class DonationConfiguration : IEntityTypeConfiguration<Donation>
         builder.HasOne(x => x.Donor)
             .WithMany()
             .HasForeignKey(x => x.DonorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.PaymentTransaction)
             .WithMany(x => x.Donations)

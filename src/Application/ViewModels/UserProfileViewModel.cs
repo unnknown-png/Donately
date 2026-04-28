@@ -27,5 +27,7 @@ public class UserProfileViewModel
     public int CurrentVerificationStep { get; init; }
 
     public DateTime CreatedAt { get; init; }
+
+    public bool IsNewUser { get; init; }
 }
 

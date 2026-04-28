@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Твій профіль";
     var profileSince = $"Разом з Donately від {Model.CreatedAt.ToLocalTime():dd.MM.yyyy}";
+    var showNewUserBadge = Model.IsNewUser;
 
     var fullNameParts = Model.FullName
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -69,7 +70,10 @@
                         <p class="profile-card__name">@Model.FullName</p>
                         <p class="profile-card__role">@@@Model.UserName</p>
                     </div>
-                    <span class="profile-card__status">Новий користувач</span>
+                    @if (showNewUserBadge)
+                    {
+                        <span class="profile-card__status">Новий користувач</span>
+                    }
                 </div>
 
                 <div class="profile-about">

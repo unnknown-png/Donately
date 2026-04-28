@@ -9,7 +9,6 @@ using Donately.Application.ViewModels;
 using Donately.Domain.Entities;
 using Donately.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Donately.Infrastructure.Services;
@@ -42,17 +41,20 @@ public class DonationPaymentService : IDonationPaymentService
     private readonly ILogger<DonationPaymentService> _logger;
     private readonly LiqPayOptions _liqPayOptions;
     private readonly IPaymentWebhookService _paymentWebhookService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public DonationPaymentService(
         ApplicationDbContext dbContext,
         ILogger<DonationPaymentService> logger,
         IOptions<LiqPayOptions> liqPayOptions,
-        IPaymentWebhookService paymentWebhookService)
+        IPaymentWebhookService paymentWebhookService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _logger = logger;
         _liqPayOptions = liqPayOptions.Value;
         _paymentWebhookService = paymentWebhookService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<LiqPayCheckoutViewModel>> CreateCheckoutAsync(
@@ -98,7 +100,7 @@ public class DonationPaymentService : IDonationPaymentService
         {
             Id = Guid.NewGuid(),
             FundraiserId = fundraiser.Id,
-            DonorId = request.UserId,
+            DonorId = request.Anonymous ? null : request.UserId,
             Amount = decimal.Round(request.Amount, 2, MidpointRounding.AwayFromZero),
             Currency = fundraiser.Currency,
             Anonymous = request.Anonymous,
@@ -146,6 +148,15 @@ public class DonationPaymentService : IDonationPaymentService
         var data = Convert.ToBase64String(Encoding.UTF8.GetBytes(payloadJson));
         var signature = ComputeSignature(_liqPayOptions.PrivateKey, data);
 
+        _logger.LogInformation(
+            "LiqPay checkout payload prepared. orderId={OrderId}, fundraiserId={FundraiserId}, amount={Amount}, currency={Currency}, resultUrl={ResultUrl}, serverUrl={ServerUrl}",
+            orderId,
+            fundraiser.Id,
+            donation.Amount,
+            donation.Currency,
+            resultUrl,
+            serverUrl);
+
         return new LiqPayCheckoutViewModel
         {
             CheckoutUrl = _liqPayOptions.CheckoutUrl,
@@ -158,35 +169,38 @@ public class DonationPaymentService : IDonationPaymentService
 
     public async Task<Result> HandleLiqPayCallbackAsync(LiqPayCallbackRequest request, CancellationToken cancellationToken = default)
     {
+        var data = request.Data;
+        var signature = request.Signature;
+
         _logger.LogInformation(
             "LiqPay callback received: dataLength={DataLength}, signatureLength={SignatureLength}, hasData={HasData}, hasSignature={HasSignature}",
-            request.Data?.Length ?? 0,
-            request.Signature?.Length ?? 0,
-            !string.IsNullOrWhiteSpace(request.Data),
-            !string.IsNullOrWhiteSpace(request.Signature));
+            data.Length,
+            signature.Length,
+            !string.IsNullOrWhiteSpace(data),
+            !string.IsNullOrWhiteSpace(signature));
 
-        if (string.IsNullOrWhiteSpace(request.Data) || string.IsNullOrWhiteSpace(request.Signature))
+        if (string.IsNullOrWhiteSpace(data) || string.IsNullOrWhiteSpace(signature))
         {
             _logger.LogWarning("LiqPay callback rejected: empty data or signature. dataLength={DataLength}, signatureLength={SignatureLength}",
-                request.Data?.Length ?? 0,
-                request.Signature?.Length ?? 0);
+                data.Length,
+                signature.Length);
 
             return new Error("Payment.Callback.InvalidPayload", "Порожній callback від LiqPay.");
         }
 
-        var expectedSignature = ComputeSignature(_liqPayOptions.PrivateKey, request.Data);
-        if (!AreSignaturesEqual(expectedSignature, request.Signature))
+        var expectedSignature = ComputeSignature(_liqPayOptions.PrivateKey, data);
+        if (!AreSignaturesEqual(expectedSignature, signature))
         {
             _logger.LogWarning("LiqPay callback rejected: invalid signature. dataLength={DataLength}, signatureLength={SignatureLength}",
-                request.Data.Length,
-                request.Signature.Length);
+                data.Length,
+                signature.Length);
 
             return new Error("Payment.Callback.InvalidSignature", "Невірний підпис callback LiqPay.");
         }
 
-        if (!TryDecodeBase64(request.Data, out var payloadJson))
+        if (!TryDecodeBase64(data, out var payloadJson))
         {
-            _logger.LogWarning("LiqPay callback rejected: invalid base64 data. dataLength={DataLength}", request.Data.Length);
+            _logger.LogWarning("LiqPay callback rejected: invalid base64 data. dataLength={DataLength}", data.Length);
 
             return new Error("Payment.Callback.InvalidData", "Некоректний формат data у callback LiqPay.");
         }
@@ -324,18 +338,48 @@ public class DonationPaymentService : IDonationPaymentService
 
     private string BuildAbsoluteUrl(string path)
     {
-        if (string.IsNullOrWhiteSpace(_liqPayOptions.PublicBaseUrl))
+        var baseUrl = ResolveRequestBaseUrl();
+
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = _liqPayOptions.PublicBaseUrl.Trim().TrimEnd('/');
+        }
+
+        if (string.IsNullOrWhiteSpace(baseUrl))
         {
             return string.Empty;
         }
 
-        var baseUrl = _liqPayOptions.PublicBaseUrl.TrimEnd('/');
         if (!path.StartsWith('/'))
         {
             path = $"/{path}";
         }
 
         return $"{baseUrl}{path}";
+    }
+
+    private string ResolveRequestBaseUrl()
+    {
+        var request = _httpContextAccessor.HttpContext?.Request;
+
+        if (request is null || !request.Host.HasValue)
+        {
+            return string.Empty;
+        }
+
+        var host = request.Host.Host;
+        if (string.IsNullOrWhiteSpace(host) || string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) || host == "127.0.0.1")
+        {
+            return string.Empty;
+        }
+
+        var scheme = string.IsNullOrWhiteSpace(request.Scheme)
+            ? Uri.UriSchemeHttps
+            : request.Scheme;
+
+        var portPart = request.Host.Port.HasValue ? $":{request.Host.Port.Value}" : string.Empty;
+
+        return $"{scheme}://{host}{portPart}";
     }
 
     private static string BuildDescription(string fundraiserTitle)

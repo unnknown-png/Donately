@@ -5,6 +5,7 @@ using Donately.Infrastructure.Data;
 using Donately.Infrastructure.Middleware;
 using Donately.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -95,6 +96,13 @@ app.UseSerilogRequestLogging(options =>
 });
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                       ForwardedHeaders.XForwardedProto |
+                       ForwardedHeaders.XForwardedHost
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
