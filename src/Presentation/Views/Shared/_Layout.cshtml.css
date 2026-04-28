@@ -8,9 +8,17 @@ for details on configuring this project to bundle and minify static web assets. 
   right: 0;
   z-index: 1030;
   background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+  padding: 0;
+  border-radius: 0;
   --app-primary: #0d6efd;
   --app-primary-soft: #eaf3ff;
   --app-text-strong: #17324d;
+}
+
+.app-header .navbar {
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
 }
 
 .app-header__container {
@@ -49,6 +57,49 @@ for details on configuring this project to bundle and minify static web assets. 
   align-items: center;
   gap: 0.85rem;
   white-space: nowrap;
+}
+
+@media (max-width: 991.98px) {
+  .app-header__container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .app-header__brand,
+  .app-header__actions,
+  .app-header__auth-actions,
+  .app-header__profile {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-header__actions,
+  .app-header__auth-actions {
+    flex-wrap: wrap;
+  }
+
+  .app-header__profile-name {
+    display: none;
+  }
+
+  body {
+    padding-top: 136px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .app-header__link,
+  .app-header__auth-btn {
+    width: 100%;
+    max-width: 260px;
+  }
+
+  body {
+    padding-top: 136px;
+  }
 }
 
 .app-header__link {
@@ -119,6 +170,7 @@ for details on configuring this project to bundle and minify static web assets. 
 body {
   background: linear-gradient(180deg, #f8fbff 0%, #ffffff 24%);
   color: #17324d;
+  padding-top: 84px;
 }
 
 body > .container {

@@ -15,7 +15,7 @@ html {
 }
 
 body {
-  padding-top: 96px;
+  padding-top: 84px;
   margin-bottom: 0;
   min-height: 100vh;
   display: flex;
@@ -39,13 +39,192 @@ main {
   top: 0;
   left: 0;
   right: 0;
-  gap: 2rem;
+  z-index: 1040;
+  background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+  border-bottom: 1px solid rgba(13, 110, 253, 0.12);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+  padding: 0;
+  border-radius: 0;
+}
+
+.app-header .navbar {
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.app-header__container {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 78px;
+  padding-left: clamp(1rem, 2.5vw, 2rem);
+  padding-right: clamp(1rem, 2.5vw, 2rem);
+}
+
+.app-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  justify-self: start;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.app-header__logo {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.app-header__title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: #17324d;
+}
+
+.app-header__actions,
+.app-header__auth-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  white-space: nowrap;
+}
+
+.app-header__actions {
+  justify-self: center;
+}
+
+.app-header__auth-actions,
+.app-header__profile {
+  justify-self: end;
+}
+
+.app-header__link,
+.app-header__auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.62rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.app-header__link {
+  font-size: 0.98rem;
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  background: #f8fbff;
+  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.06);
+  color: #17324d !important;
+}
+
+.app-header__link--featured {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #084298 !important;
+  background-color: #dcecff;
+}
+
+.app-header__link:hover,
+.app-header__link:focus-visible,
+.app-header__auth-btn:hover,
+.app-header__auth-btn:focus-visible {
+  transform: translateY(-1px);
+}
+
+.app-header__link:hover,
+.app-header__link:focus-visible {
+  background-color: #eef6ff;
+  color: #084298 !important;
+  box-shadow: 0 0.7rem 1.15rem rgba(13, 110, 253, 0.1);
+}
+
+.app-header__link--featured:hover,
+.app-header__link--featured:focus-visible {
+  background-color: #cfe2ff;
+  color: #084298 !important;
+}
+
+.app-header__auth-btn--outline {
+  color: #0d6efd;
+  background: #ffffff;
+  border: 1px solid rgba(13, 110, 253, 0.35);
+}
+
+.app-header__auth-btn--solid {
+  color: #ffffff;
+  background: linear-gradient(180deg, #005edb 0%, #0047b8 100%);
+  border: 1px solid #0d6efd;
+  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2);
+}
+
+.app-header__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+}
+
+.app-header__profile-name {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+  color: #17324d;
+}
+
+.app-header__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbff;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  text-decoration: none;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.app-header__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.app-header__avatar-fallback {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #17324d;
+}
+
+.app-header__avatar-icon {
+  font-size: 1.2rem;
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 1.75rem;
   align-items: center;
   padding: 2rem;
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(255, 255, 255, 0.98));
   border: 1px solid rgba(13, 110, 253, 0.12);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
   box-shadow: 0 1rem 2.5rem rgba(13, 110, 253, 0.08);
+  overflow: hidden;
+}
+
+.home-hero__content {
+  min-width: 0;
 }
 
 .home-kicker {
@@ -96,11 +275,11 @@ main {
 .home-hero__visual {
   position: relative;
   min-height: 280px;
+  width: 100%;
 }
 
 .home-hero__panel {
   position: absolute;
-  inset: auto;
   border-radius: 28px;
   background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
   border: 1px solid rgba(13, 110, 253, 0.12);
@@ -110,6 +289,7 @@ main {
 .home-hero__panel--accent {
   top: 24px;
   right: 20px;
+  left: auto;
   width: 68%;
   height: 72%;
   background: linear-gradient(135deg, rgba(13, 110, 253, 0.16), rgba(255, 255, 255, 0.95));
@@ -117,6 +297,7 @@ main {
 
 .home-hero__panel--cards {
   left: 0;
+  right: auto;
   bottom: 16px;
   width: 72%;
   height: 58%;
@@ -1162,6 +1343,15 @@ main {
 }
 
 @media (max-width: 991.98px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+  }
+
+  .home-hero__visual {
+    min-height: 220px;
+  }
+
   .app-section--hero,
   .home-donations-grid,
   .achievements-grid,
@@ -1170,22 +1360,39 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .home-hero__visual {
-    min-height: 220px;
-  }
-
   .fundraisers-sidebar {
     position: static;
+  }
+
+  .app-header__container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .app-header__brand,
+  .app-header__actions,
+  .app-header__profile,
+  .app-header__auth-actions {
+    width: 100%;
+    justify-content: center;
   }
 }
 
 @media (max-width: 575.98px) {
-  .app-section--hero {
-    padding: 1.25rem;
+  .home-hero {
+    padding: 1rem;
   }
 
   .home-action {
     min-width: 100%;
+  }
+
+  .app-section--hero {
+    padding: 1.25rem;
   }
 
   .fundraisers-sidebar,
@@ -1205,106 +1412,6 @@ main {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
-}
-
-.app-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  z-index: 1040;
-}
-
-.app-header__container {
-  min-height: 82px;
-}
-
-.app-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.app-header__auth-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.app-header__auth-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 0.55rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.app-header__auth-btn--outline {
-  color: #0d6efd;
-  background: #ffffff;
-  border: 1px solid rgba(13, 110, 253, 0.35);
-}
-
-.app-header__auth-btn--solid {
-  color: #ffffff;
-  background: linear-gradient(180deg, #005edb 0%, #0047b8 100%);
-  border: 1px solid #0d6efd;
-  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2);
-}
-
-.app-header__auth-btn:hover {
-  transform: translateY(-1px);
-}
-
-.app-header__avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8fbff;
-  border: 1px solid rgba(13, 110, 253, 0.2);
-  text-decoration: none;
-  overflow: hidden;
-}
-
-.app-header__avatar-icon {
-  font-size: 1.2rem;
-}
-
-.app-header__profile {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  text-decoration: none;
-}
-
-.app-header__profile-name {
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 800;
-  color: #17324d;
-}
-
-.app-header__avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.app-header__avatar-fallback {
-  font-size: 0.95rem;
-  font-weight: 900;
-  color: #17324d;
 }
 
 .auth-page {
@@ -1456,31 +1563,6 @@ main {
 }
 
 @media (max-width: 991.98px) {
-  .app-header__container {
-    flex-wrap: wrap;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    gap: 0.75rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-
-  .app-header__brand,
-  .app-header__actions {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-    justify-self: center;
-  }
-
-  .app-header__profile,
-  .app-header__auth-actions {
-    justify-self: center;
-  }
-}
-
-@media (max-width: 575.98px) {
   .auth-card {
     padding: 1.2rem;
   }
