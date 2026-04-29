@@ -65,12 +65,9 @@ public sealed class RecentDonationsService : IRecentDonationsService
                 DonorProfileImagePath = donation.DonorProfileImagePath,
                 FundraiserTitle = donation.FundraiserTitle,
                 FundraiserSlug = donation.FundraiserSlug,
-                Amount = decimal.Round(donation.Amount, 2, MidpointRounding.AwayFromZero),
-                Currency = donation.Currency,
                 AmountLabel = FormatAmount(donation.Amount, donation.Currency),
                 CreatedAt = donation.CreatedAt,
-                TimeLabel = BuildRelativeTimeLabel(donation.CreatedAt, utcNow),
-                IsAnonymous = donation.Anonymous
+                TimeLabel = BuildRelativeTimeLabel(donation.CreatedAt, utcNow)
             };
         }).ToList();
 

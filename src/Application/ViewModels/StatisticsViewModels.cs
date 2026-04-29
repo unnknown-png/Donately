@@ -1,3 +1,5 @@
+#pragma warning disable IDE0051
+
 namespace Donately.Application.ViewModels;
 
 public sealed class StatisticsDashboardViewModel
@@ -11,6 +13,14 @@ public sealed class StatisticsDashboardViewModel
     public DateTime GeneratedAt { get; init; }
 
     public string GeneratedAtLabel { get; init; } = string.Empty;
+
+    public int TotalUsersCount { get; init; }
+
+    public int ActiveFundraisersCount { get; init; }
+
+    public int SupportedFundraisersCount { get; init; }
+
+    public int TotalDonationsCount { get; init; }
 
     public string MostPopularCurrencyLabel { get; init; } = "—";
 
@@ -118,4 +128,6 @@ public sealed class StatisticsInsightViewModel
 
     public bool IsEmpty => string.IsNullOrWhiteSpace(Title);
 }
+
+#pragma warning restore IDE0051
 

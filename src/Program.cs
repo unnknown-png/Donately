@@ -63,6 +63,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
 builder.Services.AddScoped<IDonationPaymentService, DonationPaymentService>();
 builder.Services.AddScoped<IRecentDonationsService, RecentDonationsService>();
+builder.Services.AddScoped<IHomeLandingService, HomeLandingService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();

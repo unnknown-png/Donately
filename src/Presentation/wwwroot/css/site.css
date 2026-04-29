@@ -307,7 +307,16 @@ main {
 }
 
 .section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+.section-header--actions {
+  align-items: center;
 }
 
 .section-title {
@@ -1586,6 +1595,79 @@ main {
 .achievement-card__hint {
   color: #5c7185;
   line-height: 1.5;
+}
+
+.achievement-card--tone-blue {
+  background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+}
+
+.achievement-card--tone-emerald {
+  background: linear-gradient(180deg, #f1fbf4 0%, #ebf9ef 100%);
+}
+
+.achievement-card--tone-violet {
+  background: linear-gradient(180deg, #faf5ff 0%, #f4edff 100%);
+}
+
+.achievement-card--tone-amber {
+  background: linear-gradient(180deg, #fffaf0 0%, #fff7e6 100%);
+}
+
+.home-faq-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.home-faq-item {
+  overflow: hidden;
+  padding: 0;
+}
+
+.home-faq-item__summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.15rem;
+  cursor: pointer;
+  color: #17324d;
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+
+.home-faq-item__summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-faq-item__summary::after {
+  content: "+";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: #edf4ff;
+  color: #0a58ca;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.home-faq-item[open] .home-faq-item__summary::after {
+  content: "–";
+  background: #dcecff;
+}
+
+.home-faq-item__body {
+  padding: 0 1.15rem 1.05rem;
+}
+
+.home-faq-item__text {
+  margin: 0;
+  color: #5c7185;
+  line-height: 1.6;
 }
 
 .stats-hero {

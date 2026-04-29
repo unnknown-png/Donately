@@ -9,17 +9,30 @@ public class HomeController : Controller
 {
     private const int RecentDonationsLimit = 6;
 
+    private readonly IHomeLandingService _homeLandingService;
     private readonly IRecentDonationsService _recentDonationsService;
 
-    public HomeController(IRecentDonationsService recentDonationsService)
+    public HomeController(IHomeLandingService homeLandingService, IRecentDonationsService recentDonationsService)
     {
+        _homeLandingService = homeLandingService;
         _recentDonationsService = recentDonationsService;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var viewModel = await BuildViewModelAsync(cancellationToken);
-        return View(viewModel);
+        var result = await _homeLandingService.GetHomeAsync(cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return View(new HomeIndexViewModel
+            {
+                FaqItems = [],
+                ActiveFundraisers = [],
+                Achievements = []
+            });
+        }
+
+        return View(result.Value);
     }
 
     [HttpGet]
@@ -41,13 +54,6 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    private async Task<HomeIndexViewModel> BuildViewModelAsync(CancellationToken cancellationToken)
-    {
-        return new HomeIndexViewModel
-        {
-            RecentDonations = await LoadRecentDonationsAsync(cancellationToken)
-        };
-    }
 
     private async Task<RecentDonationsFeedViewModel> LoadRecentDonationsAsync(CancellationToken cancellationToken)
     {
