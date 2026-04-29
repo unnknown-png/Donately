@@ -1,4 +1,5 @@
-﻿@{
+﻿@model HomeIndexViewModel
+@{
     ViewData["Title"] = "Головна";
 }
 
@@ -7,7 +8,7 @@
         <p class="home-kicker">Donately</p>
         <h1 class="home-title">Одна добра справа змінює світ</h1>
         <p class="home-subtitle">
-            Створюй, підтримуй і змінюй чиєсь життя на краще)
+            Створюй, підтримуй і змінюй чиєсь життя на краще!
         </p>
 
         <div class="home-hero__actions">
@@ -25,56 +26,135 @@
 <section class="app-section">
     <div class="section-header">
         <h2 class="section-title">Останні донати</h2>
-        <p class="section-subtitle">Тут згодом з’являтимуться останні підтримані збори.</p>
+        <p class="section-subtitle">Подивись, хто брав участь в підтримці зборів</p>
     </div>
 
-    <div class="home-donations-grid">
-        <article class="placeholder-card donation-placeholder-card">
-            <div class="placeholder-card__avatar"></div>
-            <div class="placeholder-card__line placeholder-card__line--wide"></div>
-            <div class="placeholder-card__line"></div>
-            <div class="placeholder-card__line placeholder-card__line--short"></div>
-        </article>
+    <div class="recent-donations-feed"
+         data-recent-donations-feed
+         data-feed-url="@Url.Action("RecentDonations", "Home")"
+         data-refresh-interval="12000">
+        <button type="button"
+                class="recent-donations-arrow recent-donations-arrow--prev"
+                data-recent-donations-prev
+                aria-label="Прокрутити останні донати вліво">
+            <span aria-hidden="true">‹</span>
+        </button>
 
-        <article class="placeholder-card donation-placeholder-card">
-            <div class="placeholder-card__avatar"></div>
-            <div class="placeholder-card__line placeholder-card__line--wide"></div>
-            <div class="placeholder-card__line"></div>
-            <div class="placeholder-card__line placeholder-card__line--short"></div>
-        </article>
+        <div class="recent-donations-track" data-recent-donations-track>
+            @await Html.PartialAsync("_RecentDonationsCards", Model.RecentDonations)
+        </div>
 
-        <article class="placeholder-card donation-placeholder-card">
-            <div class="placeholder-card__avatar"></div>
-            <div class="placeholder-card__line placeholder-card__line--wide"></div>
-            <div class="placeholder-card__line"></div>
-            <div class="placeholder-card__line placeholder-card__line--short"></div>
+        <button type="button"
+                class="recent-donations-arrow recent-donations-arrow--next"
+                data-recent-donations-next
+                aria-label="Прокрутити останні донати вправо">
+            <span aria-hidden="true">›</span>
+        </button>
+    </div>
+</section>
+
+<section class="app-section">
+    <div class="section-header section-header--actions">
+        <div>
+            <h2 class="section-title">@Model.ActiveFundraisersTitle</h2>
+            <p class="section-subtitle">@Model.ActiveFundraisersSubtitle</p>
+        </div>
+
+        <a class="btn btn-outline-primary" asp-controller="Fundraisers" asp-action="Index">До активних зборів</a>
+    </div>
+
+    @if (Model.ActiveFundraisers.Count == 0)
+    {
+        <article class="placeholder-card fundraiser-empty">
+            <h3 class="fundraiser-empty__title">Поки що немає активних зборів</h3>
+            <p class="fundraiser-empty__subtitle">Як тільки з’являться нові збори, вони одразу відобразяться тут.</p>
         </article>
+    }
+    else
+    {
+        <div class="fundraisers-grid home-fundraisers-grid">
+            @foreach (var item in Model.ActiveFundraisers)
+            {
+                var hasCoverImage = !string.IsNullOrWhiteSpace(item.CoverImageUrl);
+
+                <article class="placeholder-card fundraiser-card fundraiser-card--compact">
+                    @if (hasCoverImage)
+                    {
+                        <div class="fundraiser-card__media">
+                            <img class="fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="fundraiser-card__media fundraiser-card__media--placeholder"></div>
+                    }
+
+                    <div class="fundraiser-card__body">
+                        <div class="fundraiser-card__meta">
+                            <span class="fundraiser-card__tag">@item.CategoryLabel</span>
+                            <span class="fundraiser-card__status @(item.IsUrgent ? "fundraiser-card__status--urgent" : item.IsNew ? "fundraiser-card__status--new" : string.Empty)">@item.StatusLabel</span>
+                        </div>
+
+                        <h3 class="fundraiser-card__title">@item.Title</h3>
+                        <p class="fundraiser-card__description">@item.ShortDescription</p>
+
+                        <div class="fundraiser-card__progress-block">
+                            <div class="fundraiser-card__progress-track">
+                                <span class="fundraiser-card__progress-fill" style="width: @item.ProgressPercent%"></span>
+                            </div>
+                            <div class="fundraiser-card__progress-meta">
+                                <span>@item.ProgressPercent% зібрано</span>
+                                <span>@item.CurrentAmountLabel / @item.GoalAmountLabel</span>
+                            </div>
+                        </div>
+
+                        <a class="btn btn-outline-primary fundraiser-card__action" asp-controller="Fundraisers" asp-action="Details" asp-route-slug="@item.Slug">Переглянути збір</a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<section class="app-section">
+    <div class="section-header section-header--actions">
+        <div>
+            <h2 class="section-title">@Model.AchievementsTitle</h2>
+            <p class="section-subtitle">@Model.AchievementsSubtitle</p>
+        </div>
+
+        <a class="btn btn-primary" asp-controller="Statistics" asp-action="Index">Детальніше</a>
+    </div>
+
+    <div class="achievements-grid">
+        @foreach (var item in Model.Achievements)
+        {
+            <article class="achievement-card @item.ToneClass">
+                <span class="achievement-card__label">@item.Title</span>
+                <strong class="achievement-card__value">@item.ValueLabel</strong>
+                <span class="achievement-card__hint">@item.Hint</span>
+            </article>
+        }
     </div>
 </section>
 
 <section class="app-section">
     <div class="section-header">
-        <h2 class="section-title">Досягнення</h2>
-        <p class="section-subtitle">Невдовзі тут буде коротка статистика: скільки зібрано, скільки підтримано та інше.</p>
+        <div>
+            <h2 class="section-title">@Model.FaqTitle</h2>
+            <p class="section-subtitle">@Model.FaqSubtitle</p>
+        </div>
     </div>
 
-    <div class="achievements-grid">
-        <article class="achievement-card">
-            <span class="achievement-card__label">Зібрано</span>
-            <strong class="achievement-card__value">—</strong>
-            <span class="achievement-card__hint">Фінальна сума з усіх активних зборів</span>
-        </article>
-
-        <article class="achievement-card">
-            <span class="achievement-card__label">Підтримано зборів</span>
-            <strong class="achievement-card__value">—</strong>
-            <span class="achievement-card__hint">Кількість зборів, у які вже донатили</span>
-        </article>
-
-        <article class="achievement-card">
-            <span class="achievement-card__label">Активних зборів</span>
-            <strong class="achievement-card__value">—</strong>
-            <span class="achievement-card__hint">Збори, що зараз очікують на допомогу</span>
-        </article>
+    <div class="home-faq-list">
+        @foreach (var item in Model.FaqItems)
+        {
+            <details class="placeholder-card home-faq-item">
+                <summary class="home-faq-item__summary">@item.Question</summary>
+                <div class="home-faq-item__body">
+                    <p class="home-faq-item__text">@item.Answer</p>
+                </div>
+            </details>
+        }
     </div>
 </section>

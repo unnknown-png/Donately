@@ -1,17 +1,245 @@
+@model StatisticsDashboardViewModel
 @{
-    ViewData["Title"] = "Статистика";
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="stats-hero app-section app-section--hero">
+    <div class="stats-hero__content">
+        <p class="home-kicker">Аналітика Donately</p>
+        <h1 class="home-title">Живі цифри, тренди та досягнення платформи</h1>
+        <p class="home-subtitle">@Model.Subtitle</p>
+
+        <div class="stats-hero__badges">
+            <span class="stats-pill">Оновлено @Model.GeneratedAtLabel</span>
+            <span class="stats-pill stats-pill--accent">Найактивніша категорія: @Model.MostPopularCategoryLabel</span>
+        </div>
+    </div>
+
+    <div class="placeholder-card stats-hero__panel">
+        <div class="stats-hero__panel-header">
+            <div>
+                <p class="stats-hero__panel-kicker">Розподіл коштів</p>
+                <h2 class="stats-hero__panel-title">Зібрано по валютах</h2>
+            </div>
+            <span class="stats-hero__panel-note">Без конвертації, окремо по кожній валюті</span>
+        </div>
+
+        @if (Model.CurrencyBreakdown.Count == 0)
+        {
+            <div class="stats-empty-state">
+                <span class="stats-empty-state__icon" aria-hidden="true">💱</span>
+                <p class="stats-empty-state__text">Поки що немає підтверджених донатів для відображення розподілу.</p>
+            </div>
+        }
+        else
+        {
+            <div class="stats-currency-list">
+                @foreach (var currency in Model.CurrencyBreakdown)
+                {
+                    <article class="stats-currency-card">
+                        <div>
+                            <span class="stats-currency-card__currency">@currency.Currency</span>
+                            <strong class="stats-currency-card__amount">@currency.AmountLabel</strong>
+                        </div>
+                        <span class="stats-currency-card__count">@currency.DonationCountLabel</span>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.PageError))
+{
+    <section class="app-section">
+        <div class="alert alert-warning" role="alert">@Model.PageError</div>
+    </section>
 }
 
 <section class="app-section">
     <div class="section-header">
-        <h1 class="section-title">@ViewData["Title"]</h1>
-        <p class="section-subtitle">Тут згодом з’явиться сторінка статистики.</p>
+        <h2 class="section-title">Основні показники</h2>
+        <p class="section-subtitle">Коротко про головні цифри нашого застосунку.</p>
     </div>
 
-    <div class="placeholder-card donation-placeholder-card">
-        <div class="placeholder-card__line placeholder-card__line--wide"></div>
-        <div class="placeholder-card__line"></div>
-        <div class="placeholder-card__line placeholder-card__line--short"></div>
+    <div class="stats-metrics-grid">
+        @foreach (var metric in Model.Metrics)
+        {
+            <article class="placeholder-card stats-metric-card @metric.ToneClass">
+                <div class="stats-metric-card__icon" aria-hidden="true">@metric.Icon</div>
+                <div class="stats-metric-card__content">
+                    <p class="stats-metric-card__title">@metric.Title</p>
+                    <strong class="stats-metric-card__value">@metric.ValueLabel</strong>
+                    <span class="stats-metric-card__description">@metric.Description</span>
+                </div>
+            </article>
+        }
     </div>
+</section>
+
+<section class="app-section">
+    <div class="section-header">
+        <h2 class="section-title">Динаміка за останні 7 днів</h2>
+        <p class="section-subtitle">Скільки донатів і нових зборів з’являлося щодня.</p>
+    </div>
+
+    <div class="stats-chart-grid">
+        <article class="placeholder-card stats-chart-card">
+            <div class="stats-chart-card__header">
+                <div>
+                    <p class="stats-chart-card__kicker">Донати</p>
+                    <h3 class="stats-chart-card__title">Кількість підтверджених донатів</h3>
+                </div>
+                <span class="stats-chart-card__legend">Останні 7 днів</span>
+            </div>
+
+            @if (Model.DonationActivity.Count == 0)
+            {
+                <div class="stats-empty-state stats-empty-state--compact">
+                    <span class="stats-empty-state__icon" aria-hidden="true">📊</span>
+                    <p class="stats-empty-state__text">Ще немає даних для графіка.</p>
+                </div>
+            }
+            else
+            {
+                <div class="stats-bar-chart" aria-label="Графік кількості донатів за останні 7 днів">
+                    @foreach (var point in Model.DonationActivity)
+                    {
+                        <div class="stats-bar-chart__item">
+                            <span class="stats-bar-chart__value">@point.ValueLabel</span>
+                            <div class="stats-bar-chart__track">
+                                <span class="stats-bar-chart__fill" style="height: max(0.65rem, calc(@point.BarHeight% - 0.55rem));"></span>
+                            </div>
+                            <span class="stats-bar-chart__label">@point.Label</span>
+                        </div>
+                    }
+                </div>
+            }
+        </article>
+
+        <article class="placeholder-card stats-chart-card">
+            <div class="stats-chart-card__header">
+                <div>
+                    <p class="stats-chart-card__kicker">Збори</p>
+                    <h3 class="stats-chart-card__title">Нові збори, створені за 7 днів</h3>
+                </div>
+                <span class="stats-chart-card__legend">Останні 7 днів</span>
+            </div>
+
+            @if (Model.FundraiserActivity.Count == 0)
+            {
+                <div class="stats-empty-state stats-empty-state--compact">
+                    <span class="stats-empty-state__icon" aria-hidden="true">🧭</span>
+                    <p class="stats-empty-state__text">Ще немає нових зборів у цьому періоді.</p>
+                </div>
+            }
+            else
+            {
+                <div class="stats-bar-chart" aria-label="Графік нових зборів за останні 7 днів">
+                    @foreach (var point in Model.FundraiserActivity)
+                    {
+                        <div class="stats-bar-chart__item">
+                            <span class="stats-bar-chart__value">@point.ValueLabel</span>
+                            <div class="stats-bar-chart__track stats-bar-chart__track--secondary">
+                                <span class="stats-bar-chart__fill stats-bar-chart__fill--secondary" style="height: max(0.65rem, calc(@point.BarHeight% - 0.55rem));"></span>
+                            </div>
+                            <span class="stats-bar-chart__label">@point.Label</span>
+                        </div>
+                    }
+                </div>
+            }
+        </article>
+    </div>
+</section>
+
+
+<section class="app-section">
+    <div class="section-header">
+        <h2 class="section-title">Підтримка за категоріями</h2>
+        <p class="section-subtitle">Які напрямки збирають найбільше уваги від донорів.</p>
+    </div>
+
+    <div class="placeholder-card stats-breakdown-card">
+        @if (Model.CategoryBreakdown.Count == 0)
+        {
+            <div class="stats-empty-state stats-empty-state--compact">
+                <span class="stats-empty-state__icon" aria-hidden="true">📌</span>
+                <p class="stats-empty-state__text">Поки що немає даних для розбивки за категоріями.</p>
+            </div>
+        }
+        else
+        {
+            <div class="stats-breakdown-list">
+                @foreach (var item in Model.CategoryBreakdown)
+                {
+                    <article class="stats-breakdown-row">
+                        <div class="stats-breakdown-row__header">
+                            <div>
+                                <h3 class="stats-breakdown-row__title">@item.Label</h3>
+                                <p class="stats-breakdown-row__subtitle">@item.CountLabel</p>
+                            </div>
+                            <strong class="stats-breakdown-row__share">@item.ShareLabel</strong>
+                        </div>
+
+                        <div class="stats-breakdown-row__track" aria-hidden="true">
+                            <span class="stats-breakdown-row__fill" style="width: @item.BarWidth%"></span>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<section class="app-section">
+    <div class="section-header">
+        <h2 class="section-title">Топ зборів</h2>
+        <p class="section-subtitle">Збори, які вже набрали найбільше підтримки та донатів.</p>
+    </div>
+
+    @if (Model.TopFundraisers.Count == 0)
+    {
+        <article class="placeholder-card stats-empty-state stats-empty-state--compact">
+            <span class="stats-empty-state__icon" aria-hidden="true">🏆</span>
+            <p class="stats-empty-state__text">Поки що немає зборів для відображення в рейтингу.</p>
+        </article>
+    }
+    else
+    {
+        <div class="stats-top-list">
+            @foreach (var fundraiser in Model.TopFundraisers)
+            {
+                <article class="placeholder-card stats-top-card">
+                    <div class="stats-top-card__header">
+                        <span class="stats-top-card__category">@fundraiser.CategoryLabel</span>
+                        <span class="stats-top-card__status @(fundraiser.IsCompleted ? "stats-top-card__status--complete" : fundraiser.IsActive ? "stats-top-card__status--active" : "stats-top-card__status--muted")">@fundraiser.StatusLabel</span>
+                    </div>
+
+                    <h3 class="stats-top-card__title">@fundraiser.Title</h3>
+
+                    <div class="stats-top-card__meta">
+                        <span>@fundraiser.DonationCountLabel</span>
+                        <span>@fundraiser.CurrentAmountLabel / @fundraiser.GoalAmountLabel</span>
+                    </div>
+
+                    <div class="stats-top-card__progress">
+                        <div class="stats-top-card__track">
+                            <span class="stats-top-card__fill" style="width: @fundraiser.ProgressPercent%"></span>
+                        </div>
+                        <span class="stats-top-card__progress-label">@fundraiser.ProgressPercent% до мети</span>
+                    </div>
+
+                    <a class="btn btn-outline-primary stats-top-card__link" asp-controller="Fundraisers" asp-action="Details" asp-route-slug="@fundraiser.Slug">Переглянути збір</a>
+                </article>
+            }
+        </div>
+
+        @if (Model.TopFundraisers.Count > 4)
+        {
+            <div class="stats-top-list__more">
+                <a class="btn btn-primary stats-top-list__more-button" asp-controller="Fundraisers" asp-action="Index">До зборів</a>
+            </div>
+        }
+    }
 </section>
 

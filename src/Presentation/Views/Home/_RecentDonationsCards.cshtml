@@ -1,0 +1,52 @@
+@model RecentDonationsFeedViewModel
+
+@if (Model.Items.Count == 0)
+{
+    <article class="placeholder-card recent-donations-empty">
+        <div class="recent-donations-empty__icon" aria-hidden="true">🤝</div>
+        <div class="recent-donations-empty__content">
+            <h3 class="recent-donations-empty__title">@Model.EmptyTitle</h3>
+            <p class="recent-donations-empty__subtitle">@Model.EmptyDescription</p>
+        </div>
+    </article>
+}
+else
+{
+    foreach (var item in Model.Items)
+    {
+        var hasAvatar = !string.IsNullOrWhiteSpace(item.DonorProfileImagePath);
+
+        <article class="placeholder-card recent-donation-card" data-donation-id="@item.Id">
+            <div class="recent-donation-card__header">
+                <span class="recent-donation-card__avatar" aria-hidden="true">
+                    @if (hasAvatar)
+                    {
+                        <img class="recent-donation-card__avatar-image" src="@item.DonorProfileImagePath" alt="" />
+                    }
+                    else
+                    {
+                        <span class="recent-donation-card__avatar-fallback">@item.DonorInitial</span>
+                    }
+                </span>
+
+                <div class="recent-donation-card__identity">
+                    <h3 class="recent-donation-card__name">@item.DonorName</h3>
+                    <p class="recent-donation-card__time" title="@item.CreatedAt.ToString("dd.MM.yyyy HH:mm")">@item.TimeLabel</p>
+                </div>
+            </div>
+
+            <div class="recent-donation-card__body">
+                <p class="recent-donation-card__label">Підтримав збір</p>
+                <a class="recent-donation-card__fundraiser" asp-controller="Fundraisers" asp-action="Details" asp-route-slug="@item.FundraiserSlug">
+                    @item.FundraiserTitle
+                </a>
+            </div>
+
+            <div class="recent-donation-card__footer">
+                <span class="recent-donation-card__amount-label">Сума донату</span>
+                <strong class="recent-donation-card__amount">@item.AmountLabel</strong>
+            </div>
+        </article>
+    }
+}
+

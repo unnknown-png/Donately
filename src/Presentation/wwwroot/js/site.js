@@ -196,4 +196,122 @@
 
 	refreshChipStates();
   }
+
+  const recentDonationsFeed = document.querySelector("[data-recent-donations-feed]");
+  if (recentDonationsFeed) {
+	const recentDonationsTrack = recentDonationsFeed.querySelector("[data-recent-donations-track]");
+	const recentDonationsPrev = recentDonationsFeed.querySelector("[data-recent-donations-prev]");
+	const recentDonationsNext = recentDonationsFeed.querySelector("[data-recent-donations-next]");
+	const recentDonationsUrl = recentDonationsFeed.getAttribute("data-feed-url");
+	const refreshInterval = Number.parseInt(recentDonationsFeed.getAttribute("data-refresh-interval") || "12000", 10);
+
+	if (recentDonationsTrack && recentDonationsUrl) {
+	  let refreshInProgress = false;
+	  let scrollStateTimeoutId = 0;
+
+	  const getScrollStep = () => {
+		const firstCard = recentDonationsTrack.querySelector(".recent-donation-card, .recent-donations-empty");
+		if (!firstCard) {
+		  return recentDonationsTrack.clientWidth;
+		}
+
+		const firstCardWidth = firstCard.getBoundingClientRect().width;
+		const trackStyles = window.getComputedStyle(recentDonationsTrack);
+		const gap = Number.parseFloat(trackStyles.columnGap || trackStyles.gap || "0") || 0;
+
+		return firstCardWidth + gap;
+	  };
+
+	  const updateNavigationState = () => {
+		if (!recentDonationsPrev || !recentDonationsNext) {
+		  return;
+		}
+
+		const maxScrollLeft = Math.max(0, recentDonationsTrack.scrollWidth - recentDonationsTrack.clientWidth);
+		const currentScrollLeft = recentDonationsTrack.scrollLeft;
+		const canScroll = maxScrollLeft > 1;
+		const canScrollLeft = canScroll && currentScrollLeft > 1;
+		const canScrollRight = canScroll && currentScrollLeft < maxScrollLeft - 1;
+
+		recentDonationsPrev.disabled = !canScrollLeft;
+		recentDonationsNext.disabled = !canScrollRight;
+	  };
+
+	  const scrollRecentDonations = (direction) => {
+		const step = Math.max(0, getScrollStep());
+		if (step === 0) {
+		  return;
+		}
+
+		recentDonationsTrack.scrollBy({
+		  left: direction * step,
+		  behavior: "smooth"
+		});
+	  };
+
+	  recentDonationsPrev?.addEventListener("click", () => {
+		scrollRecentDonations(-1);
+	  });
+
+	  recentDonationsNext?.addEventListener("click", () => {
+		scrollRecentDonations(1);
+	  });
+
+	  recentDonationsTrack.addEventListener("scroll", () => {
+		recentDonationsFeed.classList.add("recent-donations-feed--scrolling");
+		if (scrollStateTimeoutId) {
+		  window.clearTimeout(scrollStateTimeoutId);
+		}
+
+		scrollStateTimeoutId = window.setTimeout(() => {
+		  recentDonationsFeed.classList.remove("recent-donations-feed--scrolling");
+		}, 160);
+
+		window.requestAnimationFrame(updateNavigationState);
+	  });
+
+	  window.addEventListener("resize", () => {
+		window.requestAnimationFrame(updateNavigationState);
+	  });
+
+	  const refreshRecentDonations = async () => {
+		if (refreshInProgress) {
+		  return;
+		}
+
+		refreshInProgress = true;
+		const previousScrollLeft = recentDonationsTrack.scrollLeft;
+
+		try {
+		  const response = await fetch(recentDonationsUrl, {
+			headers: {
+			  "X-Requested-With": "XMLHttpRequest"
+			},
+			cache: "no-store"
+		  });
+
+		  if (!response.ok) {
+			updateNavigationState();
+			return;
+		  }
+
+		  recentDonationsTrack.innerHTML = await response.text();
+		  recentDonationsTrack.scrollLeft = previousScrollLeft;
+		  recentDonationsFeed.classList.remove("recent-donations-feed--scrolling");
+		  window.requestAnimationFrame(updateNavigationState);
+		} catch (error) {
+		  console.warn("Не вдалося оновити стрічку останніх донатів.", error);
+		} finally {
+		  refreshInProgress = false;
+		}
+	  };
+
+	  updateNavigationState();
+	  refreshRecentDonations();
+
+	  if (Number.isFinite(refreshInterval) && refreshInterval > 0) {
+		window.setInterval(refreshRecentDonations, refreshInterval);
+	  }
+	}
+  }
 });
