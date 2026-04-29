@@ -12,6 +12,12 @@ public sealed class StatisticsService : IStatisticsService
 {
     private static readonly CultureInfo UkrainianCulture = CultureInfo.GetCultureInfo("uk-UA");
     private static readonly string[] CurrencyOrder = ["UAH", "USD", "EUR"];
+    private static readonly IReadOnlyDictionary<string, decimal> UahRatesByCurrency = new Dictionary<string, decimal>
+    {
+        ["UAH"] = 1m,
+        ["USD"] = 41m,
+        ["EUR"] = 46m
+    };
 
     private readonly ApplicationDbContext _dbContext;
 
@@ -66,10 +72,9 @@ public sealed class StatisticsService : IStatisticsService
             })
             .ToListAsync(cancellationToken);
 
+        var totalRaisedAmount = completedDonations.Sum(x => ConvertToUah(x.Amount, x.Currency));
         var currencyBreakdown = BuildCurrencyBreakdown(completedDonations);
-        var mostPopularCurrencyLabel = currencyBreakdown
-            .FirstOrDefault()
-            ?.Currency ?? "—";
+        var totalRaisedAmountLabel = FormatAmount(totalRaisedAmount, "UAH");
 
         var categoryBreakdown = BuildCategoryBreakdown(completedDonations);
         var mostPopularCategoryLabel = categoryBreakdown
@@ -97,14 +102,15 @@ public sealed class StatisticsService : IStatisticsService
 
         return new StatisticsDashboardViewModel
         {
-            Subtitle = "Актуальна картина розвитку застосунку: збори, донати, користувачі та найцікавіші тренди за останній час.",
+            Subtitle = "Актуальна картина розвитку застосунку: збори, донати, користувачі та найцікавіші тренди за останній час",
             GeneratedAt = utcNow,
             GeneratedAtLabel = FormatKyivDateTimeLabel(utcNow),
             TotalUsersCount = totalUsers,
             ActiveFundraisersCount = activeFundraisers,
             SupportedFundraisersCount = supportedFundraisersCount,
             TotalDonationsCount = totalDonations,
-            MostPopularCurrencyLabel = mostPopularCurrencyLabel,
+            TotalRaisedAmountLabel = totalRaisedAmountLabel,
+            MostPopularCurrencyLabel = currencyBreakdown.FirstOrDefault()?.Currency ?? "—",
             MostPopularCategoryLabel = mostPopularCategoryLabel,
             Metrics = metrics,
             CurrencyBreakdown = currencyBreakdown,
@@ -418,6 +424,12 @@ public sealed class StatisticsService : IStatisticsService
     {
         var normalizedCurrency = NormalizeCurrency(currency);
         return $"{amount.ToString("0.##", UkrainianCulture)} {normalizedCurrency}";
+    }
+
+    private static decimal ConvertToUah(decimal amount, string currency)
+    {
+        var normalizedCurrency = NormalizeCurrency(currency);
+        return amount * (UahRatesByCurrency.TryGetValue(normalizedCurrency, out var rate) ? rate : 1m);
     }
 
     private static string ResolveDonorName(string? fullName, string? userName, bool anonymous)

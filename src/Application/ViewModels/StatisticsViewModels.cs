@@ -22,6 +22,8 @@ public sealed class StatisticsDashboardViewModel
 
     public int TotalDonationsCount { get; init; }
 
+    public string TotalRaisedAmountLabel { get; init; } = string.Empty;
+
     public string MostPopularCurrencyLabel { get; init; } = "—";
 
     public string MostPopularCategoryLabel { get; init; } = "—";
