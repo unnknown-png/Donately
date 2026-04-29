@@ -12,15 +12,15 @@ public sealed class HomeIndexViewModel
 
     public string ActiveFundraisersTitle { get; init; } = "Активні збори";
 
-    public string ActiveFundraisersSubtitle { get; init; } = "Обирай збір і долучайся до допомоги вже зараз.";
+    public string ActiveFundraisersSubtitle { get; init; } = "Обирай збір і долучайся до допомоги вже зараз";
 
     public string AchievementsTitle { get; init; } = "Досягнення";
 
-    public string AchievementsSubtitle { get; init; } = "Коротко про головні результати застосунку.";
+    public string AchievementsSubtitle { get; init; } = "Коротко про головні результати застосунку";
 
     public string FaqTitle { get; init; } = "Питання та відповіді";
 
-    public string FaqSubtitle { get; init; } = "Найшвидший спосіб зрозуміти, як користуватись Donately.";
+    public string FaqSubtitle { get; init; } = "Найшвидший спосіб зрозуміти, як користуватись Donately";
 }
 
 public sealed class RecentDonationsFeedViewModel
@@ -29,7 +29,7 @@ public sealed class RecentDonationsFeedViewModel
 
     public string EmptyTitle { get; init; } = "Поки що немає останніх донатів";
 
-    public string EmptyDescription { get; init; } = "Щойно з’явиться новий донат, стрічка оновиться автоматично.";
+    public string EmptyDescription { get; init; } = "Щойно з’явиться новий донат, стрічка оновиться автоматично";
 
     public DateTimeOffset RefreshedAt { get; init; } = DateTimeOffset.UtcNow;
 }

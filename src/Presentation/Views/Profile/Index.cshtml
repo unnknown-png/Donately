@@ -189,7 +189,7 @@
             <div class="profile-card__header">
                 <div>
                     <h2 class="profile-card__title">Верифікація</h2>
-                    <p class="profile-card__subtitle">Виконай кроки нижче, щоб перейти до статусу очікування верифікації.</p>
+                    <p class="profile-card__subtitle">Виконай кроки нижче, щоб перейти до статусу очікування верифікації</p>
                 </div>
 
                 <span class="profile-verification__pill">@Model.VerificationStatusLabel</span>
@@ -214,7 +214,7 @@
                             }
                         </div>
 
-                        <p class="profile-verification__step-text">@(currentStep > 1 ? "Email успішно підтверджено." : "Підтверди email, щоб перейти до наступних етапів верифікації.")</p>
+                        <p class="profile-verification__step-text">@(currentStep > 1 ? "Email успішно підтверджено" : "Підтверди email, щоб перейти до наступних етапів верифікації")</p>
                     </div>
                 </div>
 
@@ -238,7 +238,7 @@
 
                         @if (currentStep >= 2)
                         {
-                            <p class="profile-verification__step-text">@(currentStep > 2 ? "Номер телефону підтверджено успішно." : "Підтверди номер телефону через SMS-код, щоб перейти далі.")</p>
+                            <p class="profile-verification__step-text">@(currentStep > 2 ? "Номер телефону підтверджено успішно" : "Підтверди номер телефону через SMS-код, щоб перейти далі")</p>
                         }
                     </div>
                 </div>
@@ -263,11 +263,11 @@
 
                         @if (currentStep == 3)
                         {
-                            <p class="profile-verification__step-text">Прикріпи фото паспорта або студентського квитка, щоб перейти далі.</p>
+                            <p class="profile-verification__step-text">Прикріпи фото паспорта або студентського квитка, щоб перейти далі</p>
                         }
                         else if (currentStep > 3)
                         {
-                            <p class="profile-verification__step-text">Документ успішно прикріплено та відправлено на перевірку.</p>
+                            <p class="profile-verification__step-text">Документ успішно прикріплено та відправлено на перевірку</p>
                         }
                     </div>
                 </div>
@@ -292,7 +292,7 @@
                         }
                         else if (currentStep > 4)
                         {
-                            <p class="profile-verification__step-text">@(isVerificationApproved ? "Верифікацію підтверджено. Тепер ти можеш створювати власні збори." : "Верифікацію відхилено. Переглянь вимоги та спробуй ще раз.")</p>
+                            <p class="profile-verification__step-text">@(isVerificationApproved ? "Верифікацію підтверджено. Тепер ти можеш створювати власні збори" : "Верифікацію відхилено. Переглянь вимоги та спробуй ще раз")</p>
                         }
                     </div>
                 </div>

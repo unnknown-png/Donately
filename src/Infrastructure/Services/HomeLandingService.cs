@@ -67,7 +67,8 @@ public sealed class HomeLandingService : IHomeLandingService
             {
                 TotalUsersCount = 0,
                 ActiveFundraisersCount = 0,
-                SupportedFundraisersCount = 0
+                SupportedFundraisersCount = 0,
+                TotalRaisedAmountLabel = "0 UAH"
             };
 
         return new HomeIndexViewModel
@@ -81,30 +82,26 @@ public sealed class HomeLandingService : IHomeLandingService
 
     private static IReadOnlyList<HomeAchievementCardViewModel> BuildAchievements(StatisticsDashboardViewModel statistics)
     {
-        var totalRaisedAmount = statistics.CurrencyBreakdown
-            .Select(x => x.AmountLabel)
-            .ToList();
-
         return [
             new HomeAchievementCardViewModel
             {
                 Title = "Зареєстрованих користувачів",
                 ValueLabel = statistics.TotalUsersCount.ToString("N0", UkrainianCulture),
-                Hint = "Люди, які вже приєдналися до Donately.",
+                Hint = "Люди, які вже приєдналися до Donately",
                 ToneClass = "achievement-card--tone-blue"
             },
             new HomeAchievementCardViewModel
             {
-                Title = "Активних зборів",
-                ValueLabel = statistics.ActiveFundraisersCount.ToString("N0", UkrainianCulture),
-                Hint = "Збори, які зараз відкриті для допомоги.",
+                Title = "Зібрано коштів",
+                ValueLabel = statistics.TotalRaisedAmountLabel,
+                Hint = "Усі підтверджені донати, які вже допомогли зборам",
                 ToneClass = "achievement-card--tone-emerald"
             },
             new HomeAchievementCardViewModel
             {
                 Title = "Підтриманих зборів",
                 ValueLabel = statistics.SupportedFundraisersCount.ToString("N0", UkrainianCulture),
-                Hint = "Скільки різних зборів уже отримали донати.",
+                Hint = "Скільки різних зборів уже отримали донати",
                 ToneClass = "achievement-card--tone-violet"
             }
         ];
@@ -116,22 +113,22 @@ public sealed class HomeLandingService : IHomeLandingService
             new HomeFaqItemViewModel
             {
                 Question = "Як зробити донат?",
-                Answer = "Відкрий сторінку потрібного збору, обери суму, за потреби додай коментар і підтвердь оплату через платіжну форму."
+                Answer = "Відкрий сторінку потрібного збору, обери суму, за потреби додай коментар і підтвердь оплату через платіжну форму"
             },
             new HomeFaqItemViewModel
             {
                 Question = "Чи можна донатити анонімно?",
-                Answer = "Так, у формі донату можна обрати анонімний режим — тоді ім’я не буде відображатися у стрічці останніх донатів."
+                Answer = "Так, у формі донату можна обрати анонімний режим — тоді ім’я не буде відображатися у стрічці останніх донатів"
             },
             new HomeFaqItemViewModel
             {
                 Question = "Як створити власний збір?",
-                Answer = "Спершу увійди в акаунт, пройди верифікацію профілю, а потім натисни «Створити збір» і заповни всі необхідні поля."
+                Answer = "Спершу увійди в акаунт, пройди верифікацію профілю, а потім натисни «Створити збір» і заповни всі необхідні поля"
             },
             new HomeFaqItemViewModel
             {
                 Question = "Де подивитися результати платформи?",
-                Answer = "На сторінці «Досягнення» ти знайдеш статистику по користувачах, зборах, донатах та корисні інсайти по активності."
+                Answer = "На сторінці «Досягнення» ти знайдеш статистику по користувачах, зборах, донатах та корисні інсайти по активності"
             }
         ];
     }

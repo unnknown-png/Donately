@@ -78,16 +78,16 @@
                 var hasCoverImage = !string.IsNullOrWhiteSpace(item.CoverImageUrl);
 
                 <article class="placeholder-card fundraiser-card fundraiser-card--compact">
-                    @if (hasCoverImage)
-                    {
-                        <div class="fundraiser-card__media">
-                            <img class="fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="fundraiser-card__media fundraiser-card__media--placeholder"></div>
-                    }
+                    @* @if (hasCoverImage) *@
+                    @* { *@
+                    @*     <div class="fundraiser-card__media"> *@
+                    @*         <img class="fundraiser-card__media-image" src="@item.CoverImageUrl" alt="Зображення збору @item.Title" /> *@
+                    @*     </div> *@
+                    @* } *@
+                    @* else *@
+                    @* { *@
+                    @*     <div class="fundraiser-card__media fundraiser-card__media--placeholder"></div> *@
+                    @* } *@
 
                     <div class="fundraiser-card__body">
                         <div class="fundraiser-card__meta">

@@ -59,7 +59,7 @@
 <section class="app-section">
     <div class="section-header">
         <h2 class="section-title">Основні показники</h2>
-        <p class="section-subtitle">Коротко про головні цифри нашого застосунку.</p>
+        <p class="section-subtitle">Коротко про головні цифри нашого застосунку</p>
     </div>
 
     <div class="stats-metrics-grid">
@@ -80,7 +80,7 @@
 <section class="app-section">
     <div class="section-header">
         <h2 class="section-title">Динаміка за останні 7 днів</h2>
-        <p class="section-subtitle">Скільки донатів і нових зборів з’являлося щодня.</p>
+        <p class="section-subtitle">Скільки донатів і нових зборів з’являлося щодня</p>
     </div>
 
     <div class="stats-chart-grid">
@@ -108,7 +108,7 @@
                         <div class="stats-bar-chart__item">
                             <span class="stats-bar-chart__value">@point.ValueLabel</span>
                             <div class="stats-bar-chart__track">
-                                <span class="stats-bar-chart__fill" style="height: max(0.65rem, calc(@point.BarHeight% - 0.55rem));"></span>
+                                <span class="stats-bar-chart__fill" style="height: max(0.65rem, calc(@point.BarHeight% - 0.95rem));"></span>
                             </div>
                             <span class="stats-bar-chart__label">@point.Label</span>
                         </div>
@@ -141,7 +141,7 @@
                         <div class="stats-bar-chart__item">
                             <span class="stats-bar-chart__value">@point.ValueLabel</span>
                             <div class="stats-bar-chart__track stats-bar-chart__track--secondary">
-                                <span class="stats-bar-chart__fill stats-bar-chart__fill--secondary" style="height: max(0.65rem, calc(@point.BarHeight% - 0.55rem));"></span>
+                                <span class="stats-bar-chart__fill stats-bar-chart__fill--secondary" style="height: max(0.65rem, calc(@point.BarHeight% - 0.95rem));"></span>
                             </div>
                             <span class="stats-bar-chart__label">@point.Label</span>
                         </div>
@@ -156,7 +156,7 @@
 <section class="app-section">
     <div class="section-header">
         <h2 class="section-title">Підтримка за категоріями</h2>
-        <p class="section-subtitle">Які напрямки збирають найбільше уваги від донорів.</p>
+        <p class="section-subtitle">Які напрямки збирають найбільше уваги від донорів</p>
     </div>
 
     <div class="placeholder-card stats-breakdown-card">
@@ -194,7 +194,7 @@
 <section class="app-section">
     <div class="section-header">
         <h2 class="section-title">Топ зборів</h2>
-        <p class="section-subtitle">Збори, які вже набрали найбільше підтримки та донатів.</p>
+        <p class="section-subtitle">Збори, які вже набрали найбільше підтримки та донатів</p>
     </div>
 
     @if (Model.TopFundraisers.Count == 0)
