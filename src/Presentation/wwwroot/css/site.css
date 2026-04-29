@@ -1747,7 +1747,7 @@ main {
 
 .stats-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -1758,6 +1758,15 @@ main {
   gap: 0.9rem;
   align-items: start;
   min-height: 100%;
+  grid-column: span 2;
+}
+
+.stats-metrics-grid > .stats-metric-card:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.stats-metrics-grid > .stats-metric-card:nth-child(5) {
+  grid-column: 4 / span 2;
 }
 
 .stats-metric-card__icon {
@@ -1903,13 +1912,13 @@ main {
   width: 100%;
   max-width: 64px;
   min-height: 180px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0.45rem;
+  position: relative;
+  display: block;
+  padding: 0.45rem 0.35rem;
   border-radius: 1rem;
   background: linear-gradient(180deg, rgba(13, 110, 253, 0.04), rgba(13, 110, 253, 0.08));
   border: 1px solid rgba(13, 110, 253, 0.08);
+  overflow: hidden;
 }
 
 .stats-bar-chart__track--secondary {
@@ -1917,15 +1926,20 @@ main {
 }
 
 .stats-bar-chart__fill {
-  width: 100%;
+  position: absolute;
+  left: 0.35rem;
+  right: 0.35rem;
+  bottom: 0.45rem;
+  height: auto;
+  width: auto;
   border-radius: 0.8rem;
   background: linear-gradient(180deg, #0d6efd 0%, #6aa7ff 100%);
   box-shadow: 0 0.75rem 1.25rem rgba(13, 110, 253, 0.18);
 }
 
 .stats-bar-chart__fill--secondary {
-  background: linear-gradient(180deg, #8c6dff 0%, #b49cff 100%);
-  box-shadow: 0 0.75rem 1.25rem rgba(140, 109, 255, 0.16);
+  background: linear-gradient(180deg, #0d6efd 0%, #6aa7ff 100%);
+  box-shadow: 0 0.75rem 1.25rem rgba(13, 110, 253, 0.18);
 }
 
 .stats-bar-chart__label {
@@ -2050,6 +2064,18 @@ main {
   flex-wrap: wrap;
   gap: 0.65rem 1rem;
   font-size: 0.92rem;
+
+.stats-top-list__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.stats-top-list__more-button {
+  min-width: 180px;
+  border-radius: 999px;
+  font-weight: 800;
+}
 }
 
 .stats-top-card__progress {
@@ -2100,6 +2126,12 @@ main {
   .stats-bar-chart__track {
     min-height: 160px;
   }
+
+  .stats-metric-card,
+  .stats-metrics-grid > .stats-metric-card:nth-child(4),
+  .stats-metrics-grid > .stats-metric-card:nth-child(5) {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 575.98px) {
@@ -2143,6 +2175,10 @@ main {
 
   .stats-metric-card {
     grid-template-columns: 1fr;
+  }
+
+  .stats-metrics-grid {
+    gap: 0.85rem;
   }
 
   .stats-metric-card__icon {

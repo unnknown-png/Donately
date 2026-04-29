@@ -82,9 +82,6 @@ public sealed class StatisticsService : IStatisticsService
         var topFundraisers = await BuildTopFundraisersAsync(cancellationToken);
         var latestDonation = BuildLatestDonation(completedDonations, utcNow);
         var largestDonation = BuildLargestDonation(completedDonations, utcNow);
-        var totalRaisedByCurrency = currencyBreakdown
-            .Select(x => x.AmountLabel)
-            .ToList();
 
         var metrics = BuildMetrics(
             totalUsers,
@@ -96,13 +93,13 @@ public sealed class StatisticsService : IStatisticsService
             completedDonationCount,
             supportedFundraisersCount,
             donorCount,
-            anonymousDonationCount,
-            totalRaisedByCurrency.Count);
+            anonymousDonationCount);
 
         return new StatisticsDashboardViewModel
         {
             Subtitle = "Актуальна картина розвитку застосунку: збори, донати, користувачі та найцікавіші тренди за останній час.",
             GeneratedAt = utcNow,
+            GeneratedAtLabel = FormatKyivDateTimeLabel(utcNow),
             MostPopularCurrencyLabel = mostPopularCurrencyLabel,
             MostPopularCategoryLabel = mostPopularCategoryLabel,
             Metrics = metrics,
@@ -126,8 +123,7 @@ public sealed class StatisticsService : IStatisticsService
         int completedDonationCount,
         int supportedFundraisersCount,
         int donorCount,
-        int anonymousDonationCount,
-        int currencyTypesCount)
+        int anonymousDonationCount)
     {
         var verifiedShare = totalUsers == 0 ? 0 : Math.Round((decimal)verifiedUsers / totalUsers * 100m, 0);
         var anonymousShare = completedDonationCount == 0 ? 0 : Math.Round((decimal)anonymousDonationCount / completedDonationCount * 100m, 0);
@@ -172,14 +168,6 @@ public sealed class StatisticsService : IStatisticsService
                 Description = "Користувачі, які вже підтримали хоча б один збір",
                 Icon = "🛡️",
                 ToneClass = "stats-metric-card--tone-violet"
-            },
-            new StatisticsMetricCardViewModel
-            {
-                Title = "Валют у використанні",
-                ValueLabel = currencyTypesCount.ToString("N0", UkrainianCulture),
-                Description = "Скільки різних валют використовується у донатах",
-                Icon = "💱",
-                ToneClass = "stats-metric-card--tone-neutral"
             }
         ];
     }
@@ -492,6 +480,25 @@ public sealed class StatisticsService : IStatisticsService
         return string.IsNullOrWhiteSpace(currency)
             ? "UAH"
             : currency.Trim().ToUpperInvariant();
+    }
+
+    private static string FormatKyivDateTimeLabel(DateTime utcTime)
+    {
+        var timeZone = GetKyivTimeZone();
+        var kyivTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utcTime, DateTimeKind.Utc), timeZone);
+        return kyivTime.ToString("dd.MM.yyyy HH:mm", UkrainianCulture);
+    }
+
+    private static TimeZoneInfo GetKyivTimeZone()
+    {
+        var timeZoneIds = OperatingSystem.IsWindows()
+            ? new[] { "FLE Standard Time", "Europe/Kyiv" }
+            : new[] { "Europe/Kyiv", "FLE Standard Time" };
+
+        var timeZone = TimeZoneInfo.GetSystemTimeZones()
+            .FirstOrDefault(x => timeZoneIds.Contains(x.Id, StringComparer.OrdinalIgnoreCase));
+
+        return timeZone ?? TimeZoneInfo.Local;
     }
 }
 

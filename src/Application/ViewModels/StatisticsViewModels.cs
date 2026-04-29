@@ -10,6 +10,8 @@ public sealed class StatisticsDashboardViewModel
 
     public DateTime GeneratedAt { get; init; }
 
+    public string GeneratedAtLabel { get; init; } = string.Empty;
+
     public string MostPopularCurrencyLabel { get; init; } = "—";
 
     public string MostPopularCategoryLabel { get; init; } = "—";
